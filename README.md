@@ -121,3 +121,9 @@ the product around it is doing half the work off-screen.
 If this work informs yours, use the repository's [citation record](CITATION.cff).
 The code and written research are available under the [MIT License](LICENSE).
 Third-party notice: [OpenZeppelin Contracts](NOTICE.md).
+
+## Contributors
+
+- **Ivan Kalkaev**: research direction, protocol design, and final responsibility.
+- **Codex (OpenAI)**: implementation, security testing, research documentation,
+  and repository design.
