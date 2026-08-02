@@ -2,22 +2,24 @@
 
 ## Purpose
 
-Two participant wallets lock the same amount of one configured ERC-20 asset
-against immutable execution fields and a hash of retrievable terms. A resolver
-proposes `A`, `B`, or `VOID`; either participant may dispute; an independent
-arbiter may decide a disputed outcome. Missing proposals or arbitration lead to
-permissionless `VOID`, and every terminal financial exit is pull-based.
+I let two participant wallets lock the same amount of one configured ERC-20
+asset against immutable execution fields and a hash of retrievable terms. I let
+a resolver propose `A`, `B`, or `VOID`; I let either participant dispute; I let
+an independent arbiter decide a disputed outcome. I let missing proposals or
+arbitration end in permissionless `VOID`, and I make every terminal financial
+exit pull-based.
 
 ## Trust statement
 
-The backend is non-custodial, but the protocol is not trustless. The resolver
-and arbiter interpret evidence, and the pauser controls an incident flag.
-Those roles are immutable, mutually distinct, excluded from financial
-participation, and unable to withdraw escrowed assets.
+I keep the backend non-custodial, but I do not call the protocol trustless. I
+let the resolver and arbiter interpret evidence, and I give the pauser control
+of an incident flag. I make those roles immutable and mutually distinct, exclude
+them from financial participation, and give them no way to withdraw escrowed
+assets.
 
 ## Commitments
 
-The protocol binds:
+I bind:
 
 1. a typed execution commitment containing chain, release, wallets, asset,
    stake, deadlines, and protocol namespace;
@@ -26,34 +28,36 @@ The protocol binds:
 4. a domain-separated challenge identifier;
 5. a wallet-bound EIP-712 acceptance permit.
 
-Hashes authenticate exact bytes. They do not prove availability, truth,
-completeness, or the correct interpretation of evidence.
+I use hashes to authenticate exact bytes. I do not claim that they prove
+availability, truth, completeness, or the correct interpretation of evidence.
 
 ## Financial invariants
 
-- Both deposits must equal the configured stake exactly.
-- The contract accepts one immutable asset and charges no fee.
-- An open cancellation or expiry refunds one stake to the challenger.
-- `VOID` refunds one stake to each participant.
-- `A` or `B` creates one entitlement for twice the stake.
-- A wallet can consume its entitlement once.
-- State changes and token movement revert together on malformed calls or
-  unexpected balance deltas.
-- Resolver, arbiter, and pauser roles have no escrow withdrawal path.
-- Pause blocks new funding, acceptance, and resolver proposals, while disputes,
+I require the following properties:
+
+- both deposits equal the configured stake exactly;
+- I accept one immutable asset and charge no fee;
+- an open cancellation or expiry refunds one stake to the challenger;
+- `VOID` refunds one stake to each participant;
+- `A` or `B` creates one entitlement for twice the stake;
+- a wallet consumes its entitlement once;
+- state changes and token movement revert together on malformed calls or
+  unexpected balance deltas;
+- resolver, arbiter, and pauser roles have no escrow withdrawal path;
+- pause blocks new funding, acceptance, and resolver proposals, while disputes,
   finalization, timeout voiding, claims, and refunds remain available.
 
 ## Resolution paths
 
-The resolver may propose only after observation and before the proposal
-deadline. Participants can dispute before the dispute deadline using evidence
-that links to the proposal evidence hash. Arbitration begins no earlier than
-the source-correction cutoff and ends at a deterministic deadline. An
-unproposed active challenge and an unarbitrated dispute can be voided by any
-caller after their respective deadlines.
+I let the resolver propose only after observation and before the proposal
+deadline. I let participants dispute before the dispute deadline using evidence
+that links to the proposal evidence hash. I start arbitration no earlier than
+the source-correction cutoff and end it at a deterministic deadline. I let any
+caller void an unproposed active challenge or an unarbitrated dispute after its
+deadline.
 
 ## Versioning
 
-The public research namespace is `challenge-escrow-protocol/v1`. Contract
-releases are direct and non-upgradeable. A semantic or cryptographic change
-requires a new namespace and new conformance vectors.
+I publish the research namespace as `challenge-escrow-protocol/v1`. I keep
+contract releases direct and non-upgradeable. I require a new namespace and new
+conformance vectors for every semantic or cryptographic change.

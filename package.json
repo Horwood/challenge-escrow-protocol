@@ -2,7 +2,7 @@
   "name": "challenge-escrow-protocol",
   "version": "0.1.0-research",
   "private": true,
-  "description": "Research reference implementation for equal-stake, non-custodial challenge escrow.",
+  "description": "My research reference implementation for equal-stake, non-custodial challenge escrow.",
   "license": "MIT",
   "packageManager": "pnpm@10.29.1",
   "scripts": {

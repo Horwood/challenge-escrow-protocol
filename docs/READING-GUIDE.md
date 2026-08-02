@@ -1,48 +1,51 @@
 # Reading guide
 
-This repository has two layers: a small Solidity release and the research that
-explains why it is shaped this way. Start where your question lives.
+I split my repository into two layers: a small Solidity release and the
+research that explains why I shaped it this way. I would start where your
+question lives.
 
 ## Five minutes: the protocol shape
 
-Read [the root README](../README.md), then [protocol semantics](PROTOCOL.md).
-The essential move is simple: the chain holds the money and finalizes a result;
-humans interpret evidence within a set of commitments and deadlines.
+I would start with [the root README](../README.md), then move to [protocol
+semantics](PROTOCOL.md). My essential move is simple: I let the chain hold the
+money and finalize a result, while people interpret evidence inside a set of
+commitments and deadlines.
 
 ## Thirty minutes: the design argument
 
-Read [research evolution](EVOLUTION.md) after the protocol semantics. It shows
-the discarded shortcuts: a single document hash, category-bound conditions,
-and authority paths without a defined financial answer to silence.
+I would read [research evolution](EVOLUTION.md) after the protocol semantics. I
+use it to show the shortcuts I discarded: a single document hash,
+category-bound conditions, and authority paths without a defined financial
+answer to silence.
 
-Then read [the threat model](THREAT-MODEL.md). It separates things the contract
-can guarantee from things it can only make visible or limit.
+I would then read [the threat model](THREAT-MODEL.md). I use it to separate
+what I can guarantee in the contract from what I can only make visible or limit.
 
 ## An audit-oriented pass
 
-1. Start with [the security review](SECURITY-REVIEW.md) to understand both the
-   executed checks and the explicit assurance gaps.
-2. Read `contracts/src/ChallengeEscrow.sol`, then
-   `contracts/src/ChallengeEscrowKernel.sol`. The outer contract fixes the
-   release boundary; the kernel implements the lifecycle.
-3. Read `contracts/src/libraries/ExactTokenDelta.sol` before assuming ordinary
+1. I start with [the security review](SECURITY-REVIEW.md) to show both the
+   checks I ran and the assurance gaps I still carry.
+2. I read `contracts/src/ChallengeEscrow.sol`, then
+   `contracts/src/ChallengeEscrowKernel.sol`. The outer contract fixes my
+   release boundary; the kernel implements my lifecycle.
+3. I read `contracts/src/libraries/ExactTokenDelta.sol` before I assume ordinary
    ERC-20 behavior is sufficient.
-4. Read the adversarial tests in `contracts/test/ChallengeEscrowSecurity.t.sol`.
-5. Read the stateful handlers in `contracts/test/invariant/` and the public
+4. I read the adversarial tests in `contracts/test/ChallengeEscrowSecurity.t.sol`.
+5. I read the stateful handlers in `contracts/test/invariant/` and the public
    vector in `spec/vectors/`.
 
 ## Conformance work
 
-The hashes at the protocol boundary are intentionally reproducible outside the
-contract. `spec/vectors/commitments-v1.json` is fixed input and expected output;
+I made the hashes at the protocol boundary reproducible outside the contract.
+`spec/vectors/commitments-v1.json` is fixed input and expected output;
 `tools/verify-vectors.mjs` recalculates it with Foundry's command-line tools.
 
-Use that boundary when writing another implementation, a client verifier, or a
-formal model. A compatible implementation must preserve byte order, domains,
-and namespace, not merely produce values that look similar.
+I use that boundary when I write another implementation, a client verifier, or
+a formal model. I expect a compatible implementation to preserve byte order,
+domains, and namespace, not merely produce values that look similar.
 
 ## The shortest honest safety statement
 
-The code has local evidence behind it, but it has not received an independent
-audit and is not for real-value use. The intended reading order is therefore:
+I have local evidence behind the code, but I have not received an independent
+audit and I do not publish it for real-value use. I therefore suggest this order:
 security policy first, claims second, code third.
