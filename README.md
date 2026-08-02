@@ -81,8 +81,8 @@ This repository is as much about the edge conditions as the happy path:
 - timeout exits, pause behavior, and role separation are exercised as protocol
   properties, not just described in prose.
 
-The security review records the actual local evidence: 41 tests, 13 stateful
-invariant properties, static analysis, dependency inspection, and secret scans.
+The security review records the actual local evidence: 41 tests, 13 invariant
+properties, static analysis, dependency inspection, and secret scans.
 It also records what this is still missing. [Read it](docs/SECURITY-REVIEW.md).
 
 ## Run the reference locally
@@ -98,7 +98,7 @@ pnpm check
 pnpm audit:dependencies
 ```
 
-`pnpm check` verifies formatting, regenerates the public commitment boundary,
+`pnpm check` verifies formatting, recomputes the public commitment boundary,
 builds with the pinned compiler, and runs the security profile. The repository
 contains no deployment script and the contract reports `TESTNET_NO_VALUE` as
 its only value mode.
