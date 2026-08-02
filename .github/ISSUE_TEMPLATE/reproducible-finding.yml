@@ -1,0 +1,37 @@
+name: Reproducible finding
+description: Report a testable semantic inconsistency or implementation defect without sensitive security details.
+title: "Finding: "
+labels: [finding]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not use this form for a security vulnerability. Follow SECURITY.md and request a private channel first.
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or release
+      placeholder: main or a full commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: property
+    attributes:
+      label: Expected property
+      placeholder: Name the invariant, semantic rule, or documented guarantee that appears to fail.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      placeholder: Include a test, input, or command that reproduces the behavior. Remove all secrets and funded addresses.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: This report contains no exploit details, credentials, personal data, or funded addresses.
+          required: true

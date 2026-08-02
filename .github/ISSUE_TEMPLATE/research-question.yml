@@ -1,0 +1,30 @@
+name: Research question
+description: Ask about a documented assumption, commitment boundary, or protocol property.
+title: "Research: "
+labels: [research]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This repository is a research reference. Keep the question tied to a documented protocol property rather than a product integration.
+  - type: input
+    id: location
+    attributes:
+      label: Relevant file or protocol property
+      placeholder: docs/PROTOCOL.md, commitment ordering, timeout voiding
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      placeholder: State the assumption, the edge case, and why the existing material does not answer it.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I have read SECURITY.md and am not disclosing a vulnerability or sensitive data.
+          required: true

@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If this research informs your work, please cite it."
+title: "Challenge Escrow Protocol"
+type: software
+authors:
+  - family-names: Kalkaev
+    given-names: Ivan
+version: 0.1.0-research
+date-released: 2026-08-02
+license: MIT
+repository-code: "https://github.com/Horwood/challenge-escrow-protocol"
+abstract: "A product-neutral reference protocol for equal-stake, non-custodial challenge escrow with committed terms, evidence-linked resolution, disputes, timeout voiding, and pull-based settlement."

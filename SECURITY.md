@@ -14,10 +14,14 @@ timeout and pull-based exits limit but do not remove that trust.
 
 ## Reporting a vulnerability
 
-Until a private disclosure address is published, do not open an issue that
-contains an exploit, private key, credential, funded address, or personal data.
-Open a minimal issue requesting a private security contact and disclose details
-only after a private channel is confirmed.
+Use GitHub's **Report a vulnerability** control on this repository's Security
+page. It creates a private report for the maintainers. Do not open a public
+issue containing an exploit, private key, credential, funded address, or
+personal data.
+
+If private reporting is temporarily unavailable, open a minimal issue requesting
+a private security contact and disclose details only after a private channel is
+confirmed.
 
 ## Supported versions
 
