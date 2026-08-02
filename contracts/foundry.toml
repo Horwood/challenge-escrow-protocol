@@ -1,0 +1,32 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+cache_path = "cache"
+libs = ["node_modules"]
+solc = "0.8.36"
+auto_detect_solc = false
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 1
+bytecode_hash = "none"
+extra_output = ["storageLayout"]
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[profile.default.invariant]
+runs = 16
+depth = 32
+fail_on_revert = true
+show_metrics = true
+
+[profile.security.invariant]
+runs = 256
+depth = 128
+fail_on_revert = true
+show_metrics = true
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = true

@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+contracts/cache/
+contracts/out/
+contracts/broadcast/
+contracts/.gas-snapshot
+coverage/
+artifacts/
+*.log
+*-report*.json

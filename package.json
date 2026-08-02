@@ -1,0 +1,20 @@
+{
+  "name": "challenge-escrow-protocol",
+  "version": "0.1.0-research",
+  "private": true,
+  "description": "Research reference implementation for equal-stake, non-custodial challenge escrow.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.29.1",
+  "scripts": {
+    "build": "forge build --root contracts",
+    "fmt:check": "forge fmt --root contracts --check",
+    "vectors:check": "node tools/verify-vectors.mjs",
+    "test": "forge test --root contracts -vv",
+    "test:security": "FOUNDRY_PROFILE=security forge test --root contracts -vv",
+    "check": "pnpm run fmt:check && pnpm run vectors:check && pnpm run build && pnpm run test:security",
+    "audit:dependencies": "pnpm audit --audit-level high"
+  },
+  "engines": {
+    "node": ">=22.15.1"
+  }
+}

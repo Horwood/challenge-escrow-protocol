@@ -1,0 +1,43 @@
+{
+  "protocolVersion": "challenge-escrow-protocol/v1",
+  "executionType": "ChallengeExecution(bytes32 protocolVersionHash,bytes32 nonce,uint64 createdAt,uint256 chainId,address escrowContract,address challengerWallet,uint8 challengerSide,address token,uint8 tokenDecimals,uint256 stakeAmount,uint64 acceptanceDeadline,uint64 observationTime,uint64 sourceCorrectionCutoff,uint64 proposalDeadline,uint64 disputeWindowSeconds,uint64 arbitrationWindowSeconds,uint64 timeoutVoidAt)",
+  "execution": {
+    "nonce": "0x4444444444444444444444444444444444444444444444444444444444444444",
+    "createdAt": "1783814400",
+    "chainId": "31337",
+    "escrowContract": "0x1111111111111111111111111111111111111111",
+    "challengerWallet": "0x2222222222222222222222222222222222222222",
+    "challengerSide": "0",
+    "token": "0x3333333333333333333333333333333333333333",
+    "tokenDecimals": "6",
+    "stakeAmount": "10000000",
+    "acceptanceDeadline": "1783818000",
+    "observationTime": "1783900800",
+    "sourceCorrectionCutoff": "1783908000",
+    "proposalDeadline": "1783911600",
+    "disputeWindowSeconds": "43200",
+    "arbitrationWindowSeconds": "43200",
+    "timeoutVoidAt": "1783998000"
+  },
+  "termsHash": "0x71fa6106febe78f33bf5516b0937e5b0fc88b1e9fec99d651838c2566fdd7f96",
+  "domains": {
+    "spec": "challenge-escrow.spec/v1",
+    "challengeId": "challenge-escrow.challenge-id/v1",
+    "eip712Name": "Challenge Escrow"
+  },
+  "acceptancePermit": {
+    "acceptingWallet": "0x7777777777777777777777777777777777777777",
+    "acceptanceNonce": "0",
+    "expiresAt": "1783814400"
+  },
+  "expected": {
+    "executionTypeHash": "0x8d7ea5b46769547eb5866b3a3f3f66d0377d8a2ccd39f1c286724ea233c4cb16",
+    "protocolVersionHash": "0x63b55886f0887b82ba92e6904a935c93baa90374eefd9d70deb65b24b03974c5",
+    "executionHash": "0x6d37395adf5235337c3406185ee76d2625cb08f06e66df2f49d6e28a467840db",
+    "specHash": "0x79378c69fed2b3643b9538784042f8fe8294615bf10067dc6af244341f17fa1b",
+    "challengeId": "0x4fec9d991acf60bc3d2323b19172b6e153976f439cc55eb5796b3a494350f77d",
+    "domainSeparator": "0xbd654d6a83841589829d8cbea2f42a156e8053885a7708a86796b1802f317e91",
+    "permitStructHash": "0xae98e5eddea10bdf7cf5d0b7db9a2fb561df096cd799c3f5aaea19f489773cb1",
+    "permitDigest": "0xab9ac8d4225e1ea168425dfa0adf5cde3aac56825395d7146df47fb0ba65effc"
+  }
+}
