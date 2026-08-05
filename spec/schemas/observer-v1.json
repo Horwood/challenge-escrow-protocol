@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.observer/v1",
+  "title": "Challenge Escrow observer evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "head",
+    "status",
+    "release",
+    "paused",
+    "eventCount",
+    "logs",
+    "challenges",
+    "anomalies"
+  ],
+  "properties": {
+    "schema": { "const": "challenge-escrow.observer/v1" },
+    "head": { "$ref": "#/$defs/head" },
+    "status": { "enum": ["consistent", "incomplete", "conflicted"] },
+    "release": {
+      "anyOf": [
+        { "type": "null" },
+        { "type": "object", "additionalProperties": true }
+      ]
+    },
+    "paused": { "type": ["boolean", "null"] },
+    "eventCount": { "type": "integer", "minimum": 0 },
+    "logs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/log" }
+    },
+    "challenges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/challenge" }
+    },
+    "anomalies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/anomaly" }
+    }
+  },
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{64}$"
+    },
+    "decimal": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 78
+    },
+    "head": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["number", "hash", "finality", "safe", "finalized"],
+      "properties": {
+        "number": { "$ref": "#/$defs/decimal" },
+        "hash": { "$ref": "#/$defs/hash" },
+        "finality": { "enum": ["latest", "safe", "finalized", "unknown"] },
+        "safe": { "$ref": "#/$defs/blockRefOrNull" },
+        "finalized": { "$ref": "#/$defs/blockRefOrNull" }
+      }
+    },
+    "blockRefOrNull": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/blockRef" }
+      ]
+    },
+    "blockRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["number", "hash"],
+      "properties": {
+        "number": { "$ref": "#/$defs/decimal" },
+        "hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "log": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blockNumber", "blockHash", "transactionIndex", "logIndex", "kind", "event"],
+      "properties": {
+        "blockNumber": { "$ref": "#/$defs/decimal" },
+        "blockHash": { "$ref": "#/$defs/hash" },
+        "transactionIndex": { "$ref": "#/$defs/decimal" },
+        "logIndex": { "$ref": "#/$defs/decimal" },
+        "kind": { "$ref": "#/$defs/eventKind" },
+        "event": {
+          "type": "object",
+          "required": ["kind"],
+          "additionalProperties": true,
+          "properties": { "kind": { "$ref": "#/$defs/eventKind" } }
+        }
+      }
+    },
+    "eventKind": {
+      "enum": [
+        "ReleaseDeclared",
+        "PauseStatusChanged",
+        "ChallengeCreated",
+        "AcceptanceNonceAdvanced",
+        "ChallengeAccepted",
+        "ChallengeCancelled",
+        "ChallengeExpired",
+        "OutcomeProposed",
+        "OutcomeDisputed",
+        "ChallengeResolved",
+        "ChallengeVoided",
+        "WinningsClaimed",
+        "PrincipalRefunded"
+      ]
+    },
+    "challenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "challengeId",
+        "state",
+        "eventCount",
+        "firstEventBlock",
+        "lastEventBlock",
+        "lastEvent",
+        "evidenceHashes",
+        "payoutCount"
+      ],
+      "properties": {
+        "challengeId": { "$ref": "#/$defs/hash" },
+        "state": {
+          "enum": ["OPEN", "ACTIVE", "PROPOSED", "DISPUTED", "CANCELLED", "EXPIRED", "RESOLVED_A", "RESOLVED_B", "VOID"]
+        },
+        "eventCount": { "type": "integer", "minimum": 1 },
+        "firstEventBlock": { "$ref": "#/$defs/decimal" },
+        "lastEventBlock": { "$ref": "#/$defs/decimal" },
+        "lastEvent": { "$ref": "#/$defs/eventKind" },
+        "created": { "type": "object", "additionalProperties": true },
+        "evidenceHashes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/hash" }
+        },
+        "payoutCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "anomaly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "kind", "message"],
+      "properties": {
+        "code": {
+          "enum": ["orphan_event", "invalid_transition", "duplicate_terminal", "release_conflict", "duplicate_payout"]
+        },
+        "challengeId": { "$ref": "#/$defs/hash" },
+        "kind": { "$ref": "#/$defs/eventKind" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 512 }
+      }
+    }
+  }
+}

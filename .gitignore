@@ -18,4 +18,5 @@ tools/medusa/corpus/
 tools/medusa/crytic-export/
 tools/medusa/slither_results.json
 tools/formal/out/
+rust/portable-verifier/target/
 __pycache__/

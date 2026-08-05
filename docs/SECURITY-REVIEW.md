@@ -65,11 +65,13 @@ test.
   limit with the pinned compiler and optimizer settings. `pnpm run size:check`
   now fails automatically if a future build crosses that limit.
 - I publish one portable terms/evidence vector in addition to the commitment
-  vector. JavaScript and Python agree on it, but I still need a second
-  production implementation and a larger negative corpus.
+  vector. JavaScript, Python, and the independent Rust verifier agree on its
+  canonical bytes, hashes, byte counts, and condition result; the Rust layer
+  also replays a twelve-case negative corpus with stable error codes.
 - I have not run live-chain, wallet, key-management, monitoring, or
-  incident-response tests; the reorganization observer and liveness lab are
-  local simulations.
+  incident-response tests; the reorganization observer, lifecycle projector,
+  finality labels, and dual-RPC comparison are local simulations with injected
+  memory-only provider faults.
 - I now run a five-property Halmos boundary harness against the production
   release surface and commitment libraries. It has zero counterexamples for
   its stated properties, while full lifecycle, arbitrary token, and live-chain
@@ -96,11 +98,12 @@ test.
   contract tree. Every mutation was killed by the production test suite; no
   mutation survived.
 - I checked the portable schemas, canonical bytes, domain-separated hashes, and
-  condition result in both JavaScript and Python; I also ran read-only client,
+  condition result in JavaScript, Python, and Rust; I also ran read-only client,
   block-pinned inspection, field-level `ReleaseDeclared` and `ChallengeCreated`
-  reconciliation, duplicate/omitted/misaligned event handling, reorganization
-  replay, simulator, liveness sweep, failure-lab, and authority-policy
-  prototype checks.
+  reconciliation, complete event decoding, versioned observer-envelope shape,
+  duplicate/omitted/misaligned event handling, reorganization replay, finality
+  labels, dual-RPC divergence and outage handling, simulator, liveness sweep,
+  failure-lab, and authority-policy prototype checks.
 - I measured core line coverage at 86.36% for `ChallengeEscrow.sol`, 83.42% for
   `ChallengeEscrowKernel.sol`, and 100% for `ExactTokenDelta.sol`.
 - I found no confirmed exploitable finding after manually classifying Slither's

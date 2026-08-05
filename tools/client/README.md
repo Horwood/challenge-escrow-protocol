@@ -16,3 +16,9 @@ call so a reorganization cannot mix two different snapshots.
 read-only calls, decodes the nested structs, and preserves the accounting
 equation. I run it with `deno check tools/client/index.ts tools/client/test.ts`
 and `deno run tools/client/test.ts` when I have Deno available.
+
+`observer.ts`, `events.ts`, `projector.ts`, and `rpc.ts` form a separate
+read-only observation boundary. They anchor logs to block hashes, decode every
+published protocol event, project a fail-closed lifecycle record, and compare
+two RPC endpoints without accepting a signer or a credential. The deep test is
+`tools/client/observer.deep.test.ts`; it keeps all fixtures in memory.

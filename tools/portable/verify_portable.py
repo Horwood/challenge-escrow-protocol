@@ -21,6 +21,16 @@ REF_RE = re.compile(r"^/observations/([A-Za-z0-9._~-]{1,64})/value$")
 TIMESTAMP_RE = re.compile(r"^[0-9]{1,20}$")
 INTEGER_RE = re.compile(r"^-?(0|[1-9][0-9]*)$")
 DECIMAL_RE = re.compile(r"^-?(0|[1-9][0-9]*)\.[0-9]+$")
+VOID_REASONS = {
+    "SOURCE_UNAVAILABLE",
+    "INSUFFICIENT_DATA",
+    "INVALID_OBSERVATION",
+    "AMBIGUOUS_SOURCE_RECORD",
+    "EVIDENCE_UNAVAILABLE",
+    "TERMS_UNRESOLVABLE",
+}
+LOCALE_RE = re.compile(r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$")
+TERMS_VERSION_RE = re.compile(r"^[A-Za-z0-9._~-]{1,32}$")
 
 
 def fail(message: str) -> None:
@@ -164,7 +174,17 @@ def validate_terms(terms: Any) -> None:
     require(isinstance(policy["allowedOutcomes"], list) and 1 <= len(policy["allowedOutcomes"]) <= 3, "terms.allowedOutcomes length")
     require(len(set(policy["allowedOutcomes"])) == len(policy["allowedOutcomes"]) and set(policy["allowedOutcomes"]) <= {"A", "B", "VOID"}, "terms.allowedOutcomes is invalid")
     require(isinstance(policy["voidReasons"], list) and 1 <= len(policy["voidReasons"]) <= 6, "terms.voidReasons length")
-    require(len(set(policy["voidReasons"])) == len(policy["voidReasons"]), "terms.voidReasons is duplicated")
+    require(len(set(policy["voidReasons"])) == len(policy["voidReasons"]) and all(isinstance(item, str) and item in VOID_REASONS for item in policy["voidReasons"]), "terms.voidReasons is invalid or duplicated")
+    if "title" in terms:
+        require(isinstance(terms["title"], str) and 1 <= len(terms["title"]) <= 256, "terms.title is invalid")
+    if "statement" in terms:
+        require(isinstance(terms["statement"], str) and 1 <= len(terms["statement"]) <= 4096, "terms.statement is invalid")
+    if "metadata" in terms:
+        keys(terms["metadata"], set(), {"locale", "termsVersion"}, "terms.metadata")
+        if "locale" in terms["metadata"]:
+            require(isinstance(terms["metadata"]["locale"], str) and LOCALE_RE.fullmatch(terms["metadata"]["locale"]), "terms.metadata.locale is invalid")
+        if "termsVersion" in terms["metadata"]:
+            require(isinstance(terms["metadata"]["termsVersion"], str) and TERMS_VERSION_RE.fullmatch(terms["metadata"]["termsVersion"]), "terms.metadata.termsVersion is invalid")
 
 
 def validate_evidence(evidence: Any) -> None:
@@ -177,7 +197,7 @@ def validate_evidence(evidence: Any) -> None:
     require(evidence["role"] in {"resolver", "challenger", "acceptor", "arbiter", "timeout"}, "evidence.role is invalid")
     require(evidence["outcome"] in {"A", "B", "VOID"}, "evidence.outcome is invalid")
     max_reason = 5 if evidence["outcome"] == "VOID" else 3
-    require(isinstance(evidence["reasonCode"], str) and evidence["reasonCode"].isdigit() and 0 <= int(evidence["reasonCode"]) <= max_reason, "evidence.reasonCode is invalid")
+    require(isinstance(evidence["reasonCode"], str) and re.fullmatch(fr"[0-{max_reason}]", evidence["reasonCode"]), "evidence.reasonCode is invalid")
     require(isinstance(evidence["capturedAt"], str) and TIMESTAMP_RE.fullmatch(evidence["capturedAt"]), "evidence.capturedAt is invalid")
     require(evidence["conditionLanguage"] == "challenge-escrow.condition-language/v1", "evidence condition language drifted")
     require(isinstance(evidence["observations"], list) and 1 <= len(evidence["observations"]) <= 64, "evidence.observations length")
@@ -198,15 +218,16 @@ def validate_evidence(evidence: Any) -> None:
             require(isinstance(evaluation["path"], str) and re.fullmatch(r"/[A-Za-z0-9._~-]{1,64}(?:/[A-Za-z0-9._~-]{1,64})*", evaluation["path"]), f"{label}.path is invalid")
             require(isinstance(evaluation["result"], bool), f"{label}.result is invalid")
             require(isinstance(evaluation["observationIds"], list) and 1 <= len(evaluation["observationIds"]) <= 32, f"{label}.observationIds length")
+            require(len(set(evaluation["observationIds"])) == len(evaluation["observationIds"]), f"{label}.observationIds are duplicated")
             require(all(item in observation_ids for item in evaluation["observationIds"]), f"{label}.observationIds references an unknown observation")
     require(isinstance(evidence["artifacts"], list) and len(evidence["artifacts"]) <= 64, "evidence.artifacts length")
     for index, artifact in enumerate(evidence["artifacts"]):
         label = f"evidence.artifacts[{index}]"
         keys(artifact, {"hash", "mediaType"}, {"sizeBytes"}, label)
         require(isinstance(artifact["hash"], str) and HASH_RE.fullmatch(artifact["hash"]), f"{label}.hash is invalid")
-        require(isinstance(artifact["mediaType"], str) and re.fullmatch(r"[a-z0-9!#$&^_.+-]+/[a-z0-9!#$&^_.+-]+", artifact["mediaType"]), f"{label}.mediaType is invalid")
+        require(isinstance(artifact["mediaType"], str) and len(artifact["mediaType"]) <= 127 and re.fullmatch(r"[a-z0-9!#$&^_.+-]+/[a-z0-9!#$&^_.+-]+", artifact["mediaType"]), f"{label}.mediaType is invalid")
         if "sizeBytes" in artifact:
-            require(isinstance(artifact["sizeBytes"], str) and re.fullmatch(r"(0|[1-9][0-9]*)", artifact["sizeBytes"]), f"{label}.sizeBytes is invalid")
+            require(isinstance(artifact["sizeBytes"], str) and len(artifact["sizeBytes"]) <= 20 and re.fullmatch(r"(0|[1-9][0-9]*)", artifact["sizeBytes"]), f"{label}.sizeBytes is invalid")
 
 
 def rational(value: str) -> tuple[int, int]:

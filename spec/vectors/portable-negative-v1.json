@@ -1,0 +1,77 @@
+{
+  "version": "portable-negative-v1",
+  "cases": [
+    {
+      "id": "invalid-json",
+      "operation": "canonical-json",
+      "input": "{",
+      "errorCode": "invalid_json"
+    },
+    {
+      "id": "trailing-data",
+      "operation": "canonical-json",
+      "input": "{\"a\":\"one\"}{\"b\":\"two\"}",
+      "errorCode": "invalid_json"
+    },
+    {
+      "id": "duplicate-key",
+      "operation": "canonical-json",
+      "input": "{\"a\":\"one\",\"a\":\"two\"}",
+      "errorCode": "duplicate_key"
+    },
+    {
+      "id": "duplicate-key-after-escape",
+      "operation": "canonical-json",
+      "input": "{\"a\":\"one\",\"\\u0061\":\"two\"}",
+      "errorCode": "duplicate_key"
+    },
+    {
+      "id": "nfc-key-collision",
+      "operation": "canonical-json",
+      "input": "{\"e\\u0301\":\"one\",\"é\":\"two\"}",
+      "errorCode": "nfc_collision"
+    },
+    {
+      "id": "json-number",
+      "operation": "canonical-json",
+      "input": "{\"a\":1}",
+      "errorCode": "json_number_forbidden"
+    },
+    {
+      "id": "unknown-condition-op",
+      "operation": "condition",
+      "input": "{\"schema\":\"challenge-escrow.condition-language/v1\",\"root\":{\"op\":\"execute\"}}",
+      "errorCode": "invalid_operator"
+    },
+    {
+      "id": "unknown-condition-field",
+      "operation": "condition",
+      "input": "{\"schema\":\"challenge-escrow.condition-language/v1\",\"root\":{\"op\":\"all\",\"args\":[{\"op\":\"eq\",\"left\":{\"kind\":\"integer\",\"value\":\"1\"},\"right\":{\"kind\":\"integer\",\"value\":\"1\"}}],\"rogue\":true}}",
+      "errorCode": "unknown_field"
+    },
+    {
+      "id": "invalid-integer-leading-zero",
+      "operation": "condition",
+      "input": "{\"schema\":\"challenge-escrow.condition-language/v1\",\"root\":{\"op\":\"eq\",\"left\":{\"kind\":\"integer\",\"value\":\"01\"},\"right\":{\"kind\":\"integer\",\"value\":\"1\"}}}",
+      "errorCode": "invalid_value"
+    },
+    {
+      "id": "missing-condition-root",
+      "operation": "condition",
+      "input": "{\"schema\":\"challenge-escrow.condition-language/v1\"}",
+      "errorCode": "missing_field"
+    },
+    {
+      "id": "condition-schema-drift",
+      "operation": "condition",
+      "input": "{\"schema\":\"challenge-escrow.condition-language/v2\",\"root\":{\"op\":\"execute\"}}",
+      "errorCode": "invalid_schema"
+    },
+    {
+      "id": "unpaired-surrogate",
+      "operation": "canonical-json",
+      "input": "{\"text\":\"\\ud800\"}",
+      "errorCode": "invalid_json"
+    }
+  ]
+}

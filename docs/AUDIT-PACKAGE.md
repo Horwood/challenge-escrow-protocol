@@ -17,7 +17,8 @@ independent evidence beside it:
 | Arithmetic and symbolic boundary | `tools/formal/` | Solc CHC/Z3 checks plus a Halmos conformance harness for the production release surface |
 | Attack planning | `docs/ATTACK-MATRIX.md` | Reachable attack families, branch gaps, and mutation kill targets |
 | Independent EVM run | `tools/medusa/` | A shadow state machine fuzzed by a separate execution engine |
-| Public conformance | `spec/vectors/` and `tools/verify-vectors.mjs` | Commitment bytes and hashes outside the Solidity implementation |
+| Public conformance | `spec/vectors/`, `tools/portable/`, and `rust/portable-verifier/` | Commitment bytes, canonical JSON, errors, and hashes outside the Solidity implementation |
+| Observer boundary | `tools/client/{observer,events,projector,rpc}.ts` and `spec/schemas/observer-v1.json` | Reorganization-safe logs, full event decoding, lifecycle projection, finality labels, and dual-RPC divergence signals |
 
 The JavaScript and Solidity harnesses intentionally do not import production
 state. They are useful only because they can disagree with it; I never count a
@@ -36,7 +37,10 @@ pnpm run formal:contract
 pnpm run size:check
 pnpm run schemas:check
 pnpm run portable:check
+pnpm run portable:rust
+pnpm run portable:differential
 pnpm run client:check
+pnpm run schemas:check
 pnpm run simulator:test
 pnpm run liveness:sweep
 pnpm run failure:lab
@@ -73,6 +77,15 @@ I have the following local results for this revision:
   properties with zero counterexamples. Its ledger is in
   `docs/FORMAL-PROOF-LEDGER.md`; it does not prove arbitrary token behavior or
   every stateful lifecycle path.
+- The portable semantics boundary now has three implementations. The Rust
+  verifier passes its twelve-case negative corpus and the three-way differential
+  check reproduces the same terms/evidence hashes, byte counts, and condition
+  result as JavaScript and Python.
+- The read-only observer decodes the complete v1 event set, projects lifecycle
+  state into the versioned observer envelope, labels the supplied head's
+  finality, and reports orphan or impossible events as explicit anomalies. The
+  deep client test also covers agreeing, divergent, and unavailable RPC head
+  comparisons.
 - The branch baseline reports one uncovered production branch. I ran the 12
   representative mutation targets in isolated temporary copies: all 12 were
   killed and none survived. This is a measured local mutation baseline, not a

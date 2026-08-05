@@ -39,11 +39,17 @@ jobs:
         with:
           version: v1.7.1
 
+      - name: Set up pinned Rust
+        run: rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
+
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Verify the protocol
         run: pnpm check
+
+      - name: Verify portable semantics in three implementations
+        run: pnpm run portable:rust && pnpm run portable:differential
 
       - name: Inspect dependencies
         run: pnpm audit --audit-level high

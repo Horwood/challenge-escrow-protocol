@@ -6,6 +6,16 @@ const REF_PATTERN = /^\/observations\/[A-Za-z0-9._~-]{1,64}\/value$/;
 const TIMESTAMP_PATTERN = /^[0-9]{1,20}$/;
 const INTEGER_PATTERN = /^-?(0|[1-9][0-9]*)$/;
 const DECIMAL_PATTERN = /^-?(0|[1-9][0-9]*)\.[0-9]+$/;
+const VOID_REASON_SET = new Set([
+  "SOURCE_UNAVAILABLE",
+  "INSUFFICIENT_DATA",
+  "INVALID_OBSERVATION",
+  "AMBIGUOUS_SOURCE_RECORD",
+  "EVIDENCE_UNAVAILABLE",
+  "TERMS_UNRESOLVABLE",
+]);
+const LOCALE_PATTERN = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/;
+const TERMS_VERSION_PATTERN = /^[A-Za-z0-9._~-]{1,32}$/;
 
 function fail(message) {
   throw new Error(message);
@@ -191,17 +201,17 @@ function validateValue(value, label) {
   assert(value && typeof value === "object" && !Array.isArray(value), `${label} must be an object`);
   if (Object.hasOwn(value, "ref")) {
     assertKeys(value, ["ref"], [], label);
-    assert(REF_PATTERN.test(value.ref), `${label}.ref is outside the observation namespace`);
+    assert(typeof value.ref === "string" && REF_PATTERN.test(value.ref), `${label}.ref is outside the observation namespace`);
     return;
   }
   assertKeys(value, ["kind", "value"], [], label);
   assert(typeof value.kind === "string", `${label}.kind must be a string`);
-  if (value.kind === "integer") assert(INTEGER_PATTERN.test(value.value), `${label}.value is not an integer string`);
-  else if (value.kind === "decimal") assert(DECIMAL_PATTERN.test(value.value), `${label}.value is not a decimal string`);
+  if (value.kind === "integer") assert(typeof value.value === "string" && value.value.length <= 78 && INTEGER_PATTERN.test(value.value), `${label}.value is not an integer string`);
+  else if (value.kind === "decimal") assert(typeof value.value === "string" && value.value.length <= 128 && DECIMAL_PATTERN.test(value.value), `${label}.value is not a decimal string`);
   else if (value.kind === "text") assert(typeof value.value === "string" && value.value.length <= 4096, `${label}.value is not bounded text`);
   else if (value.kind === "boolean") assert(typeof value.value === "boolean", `${label}.value is not boolean`);
-  else if (value.kind === "timestamp") assert(TIMESTAMP_PATTERN.test(value.value), `${label}.value is not a timestamp string`);
-  else if (value.kind === "hash") assert(HASH_PATTERN.test(value.value), `${label}.value is not a hash`);
+  else if (value.kind === "timestamp") assert(typeof value.value === "string" && TIMESTAMP_PATTERN.test(value.value), `${label}.value is not a timestamp string`);
+  else if (value.kind === "hash") assert(typeof value.value === "string" && HASH_PATTERN.test(value.value), `${label}.value is not a hash`);
   else fail(`${label}.kind is unknown`);
 }
 
@@ -214,12 +224,12 @@ export function validateTerms(terms) {
   terms.sources.forEach((source, index) => {
     const label = `terms.sources[${index}]`;
     assertKeys(source, ["id", "kind", "locator"], ["trust"], label);
-    assert(ID_PATTERN.test(source.id), `${label}.id is invalid`);
+    assert(typeof source.id === "string" && ID_PATTERN.test(source.id), `${label}.id is invalid`);
     assert(!sourceIds.has(source.id), `${label}.id is duplicated`);
     sourceIds.add(source.id);
-    assert(["chain-log", "api", "document", "manual"].includes(source.kind), `${label}.kind is invalid`);
+    assert(typeof source.kind === "string" && ["chain-log", "api", "document", "manual"].includes(source.kind), `${label}.kind is invalid`);
     assert(typeof source.locator === "string" && source.locator.length >= 1 && source.locator.length <= 2048, `${label}.locator is invalid`);
-    if (Object.hasOwn(source, "trust")) assert(["untrusted", "authenticated"].includes(source.trust), `${label}.trust is invalid`);
+    if (Object.hasOwn(source, "trust")) assert(typeof source.trust === "string" && ["untrusted", "authenticated"].includes(source.trust), `${label}.trust is invalid`);
   });
   const policy = terms.resolutionPolicy;
   assertKeys(policy, ["conditionLanguage", "allowedOutcomes", "voidReasons"], [], "terms.resolutionPolicy");
@@ -227,21 +237,26 @@ export function validateTerms(terms) {
   assert(Array.isArray(policy.allowedOutcomes) && policy.allowedOutcomes.length >= 1 && policy.allowedOutcomes.length <= 3, "terms.allowedOutcomes length");
   assert(new Set(policy.allowedOutcomes).size === policy.allowedOutcomes.length && policy.allowedOutcomes.every((item) => ["A", "B", "VOID"].includes(item)), "terms.allowedOutcomes is invalid");
   assert(Array.isArray(policy.voidReasons) && policy.voidReasons.length >= 1 && policy.voidReasons.length <= 6, "terms.voidReasons length");
-  assert(new Set(policy.voidReasons).size === policy.voidReasons.length, "terms.voidReasons is duplicated");
+  assert(new Set(policy.voidReasons).size === policy.voidReasons.length && policy.voidReasons.every((item) => typeof item === "string" && VOID_REASON_SET.has(item)), "terms.voidReasons is invalid or duplicated");
   if (Object.hasOwn(terms, "title")) assert(typeof terms.title === "string" && terms.title.length >= 1 && terms.title.length <= 256, "terms.title is invalid");
   if (Object.hasOwn(terms, "statement")) assert(typeof terms.statement === "string" && terms.statement.length >= 1 && terms.statement.length <= 4096, "terms.statement is invalid");
+  if (Object.hasOwn(terms, "metadata")) {
+    assertKeys(terms.metadata, [], ["locale", "termsVersion"], "terms.metadata");
+    if (Object.hasOwn(terms.metadata, "locale")) assert(typeof terms.metadata.locale === "string" && LOCALE_PATTERN.test(terms.metadata.locale), "terms.metadata.locale is invalid");
+    if (Object.hasOwn(terms.metadata, "termsVersion")) assert(typeof terms.metadata.termsVersion === "string" && TERMS_VERSION_PATTERN.test(terms.metadata.termsVersion), "terms.metadata.termsVersion is invalid");
+  }
 }
 
 export function validateEvidence(evidence) {
   assertKeys(evidence, ["schema", "challengeId", "specHash", "role", "outcome", "reasonCode", "capturedAt", "conditionLanguage", "observations", "artifacts"], ["parentEvidenceHash", "evaluations"], "evidence");
   assert(evidence.schema === "challenge-escrow.evidence/v1", "evidence.schema drifted");
-  assert(HASH_PATTERN.test(evidence.challengeId), "evidence.challengeId is invalid");
-  assert(HASH_PATTERN.test(evidence.specHash), "evidence.specHash is invalid");
-  if (Object.hasOwn(evidence, "parentEvidenceHash")) assert(HASH_PATTERN.test(evidence.parentEvidenceHash), "evidence.parentEvidenceHash is invalid");
+  assert(typeof evidence.challengeId === "string" && HASH_PATTERN.test(evidence.challengeId), "evidence.challengeId is invalid");
+  assert(typeof evidence.specHash === "string" && HASH_PATTERN.test(evidence.specHash), "evidence.specHash is invalid");
+  if (Object.hasOwn(evidence, "parentEvidenceHash")) assert(typeof evidence.parentEvidenceHash === "string" && HASH_PATTERN.test(evidence.parentEvidenceHash), "evidence.parentEvidenceHash is invalid");
   assert(["resolver", "challenger", "acceptor", "arbiter", "timeout"].includes(evidence.role), "evidence.role is invalid");
   assert(["A", "B", "VOID"].includes(evidence.outcome), "evidence.outcome is invalid");
-  assert(typeof evidence.reasonCode === "string" && /^[0-9]{1,2}$/.test(evidence.reasonCode) && Number(evidence.reasonCode) <= (evidence.outcome === "VOID" ? 5 : 3), "evidence.reasonCode is invalid");
-  assert(TIMESTAMP_PATTERN.test(evidence.capturedAt), "evidence.capturedAt is invalid");
+  assert(typeof evidence.reasonCode === "string" && new RegExp(`^[0-${evidence.outcome === "VOID" ? 5 : 3}]$`).test(evidence.reasonCode), "evidence.reasonCode is invalid");
+  assert(typeof evidence.capturedAt === "string" && TIMESTAMP_PATTERN.test(evidence.capturedAt), "evidence.capturedAt is invalid");
   assert(evidence.conditionLanguage === "challenge-escrow.condition-language/v1", "evidence condition language drifted");
   assert(Array.isArray(evidence.observations) && evidence.observations.length >= 1 && evidence.observations.length <= 64, "evidence.observations length");
   const ids = new Set();
@@ -262,16 +277,17 @@ export function validateEvidence(evidence) {
       assert(typeof evaluation.path === "string" && /^\/[A-Za-z0-9._~-]{1,64}(?:\/[A-Za-z0-9._~-]{1,64})*$/.test(evaluation.path), `${label}.path is invalid`);
       assert(typeof evaluation.result === "boolean", `${label}.result is invalid`);
       assert(Array.isArray(evaluation.observationIds) && evaluation.observationIds.length >= 1 && evaluation.observationIds.length <= 32, `${label}.observationIds length`);
-      assert(evaluation.observationIds.every((id) => ids.has(id)), `${label}.observationIds references an unknown observation`);
+      assert(new Set(evaluation.observationIds).size === evaluation.observationIds.length, `${label}.observationIds are duplicated`);
+      assert(evaluation.observationIds.every((id) => typeof id === "string" && ids.has(id)), `${label}.observationIds references an unknown observation`);
     });
   }
   assert(Array.isArray(evidence.artifacts) && evidence.artifacts.length <= 64, "evidence.artifacts length");
   evidence.artifacts.forEach((artifact, index) => {
     const label = `evidence.artifacts[${index}]`;
     assertKeys(artifact, ["hash", "mediaType"], ["sizeBytes"], label);
-    assert(HASH_PATTERN.test(artifact.hash), `${label}.hash is invalid`);
-    assert(typeof artifact.mediaType === "string" && /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(artifact.mediaType), `${label}.mediaType is invalid`);
-    if (Object.hasOwn(artifact, "sizeBytes")) assert(/^(0|[1-9][0-9]*)$/.test(artifact.sizeBytes), `${label}.sizeBytes is invalid`);
+    assert(typeof artifact.hash === "string" && HASH_PATTERN.test(artifact.hash), `${label}.hash is invalid`);
+    assert(typeof artifact.mediaType === "string" && artifact.mediaType.length <= 127 && /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(artifact.mediaType), `${label}.mediaType is invalid`);
+    if (Object.hasOwn(artifact, "sizeBytes")) assert(typeof artifact.sizeBytes === "string" && artifact.sizeBytes.length <= 20 && /^(0|[1-9][0-9]*)$/.test(artifact.sizeBytes), `${label}.sizeBytes is invalid`);
   });
 }
 

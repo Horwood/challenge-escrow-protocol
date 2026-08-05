@@ -1,4 +1,5 @@
 import type { Address, Hex, ReadProvider } from "./index.ts";
+import { projectProtocolLogs, type ObserverEvidenceRecord } from "./projector.ts";
 
 export interface BlockHeader {
   readonly number: bigint;
@@ -137,6 +138,12 @@ export class ReorgSafeObserver {
     if (!this.#head) await this.sync();
     if (!this.#head) fail("observer has no head after sync");
     return { head: this.#head, directState: await readDirectState(), observedLogs: this.logs };
+  }
+
+  async evidence(options: { readonly safe?: BlockHeader | null; readonly finalized?: BlockHeader | null } = {}): Promise<ObserverEvidenceRecord> {
+    if (!this.#head) await this.sync();
+    if (!this.#head) fail("observer has no head after sync");
+    return projectProtocolLogs(this.logs, this.#head, options);
   }
 
   async #findCommonAncestor(latest: BlockHeader): Promise<BlockHeader | null> {

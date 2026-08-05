@@ -82,6 +82,16 @@ state after a reorganization instead of granting rights from an event alone.
 
 The schemas are intentionally closed-world: unknown fields, unknown operators,
 unknown outcomes, invalid reason ranges, malformed hashes, excessive depth, and
-unbounded arrays are rejected. The schema check is only a structural guard; the
-next research stage adds independent canonicalization, validation, and vectors
-in more than one language.
+unbounded arrays are rejected. I now maintain a third implementation in
+`rust/portable-verifier/`, with a pinned Rust toolchain, a locked dependency
+graph, an explicit error catalog, and a twelve-case negative corpus. The
+JavaScript, Python, and Rust implementations must produce identical canonical
+bytes, hashes, byte counts, and condition results for the v1 vector; the
+three-way check is in `tools/portable/differential.mjs`.
+
+The Rust layer is an independent conformance implementation, not a claim that
+the Solidity contract parses or evaluates these documents. It rejects duplicate
+keys while parsing, refuses JSON numbers, normalizes and sorts Unicode keys,
+enforces the schema bounds, evaluates exact decimal comparisons, and exposes
+stable error codes for callers. The error meanings and reproduction command are
+in [the portable error catalog](PORTABLE-ERROR-CATALOG.md).

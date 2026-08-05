@@ -66,6 +66,8 @@ results.push(run("model", "pnpm", ["run", "model:test"], 180_000));
 results.push(run("formal", "pnpm", ["run", "formal:check"], 180_000));
 results.push(run("schemas", "pnpm", ["run", "schemas:check"], 120_000));
 results.push(run("portable", "pnpm", ["run", "portable:check"], 120_000));
+results.push(run("portable-rust", "pnpm", ["run", "portable:rust"], 180_000));
+results.push(run("portable-differential", "pnpm", ["run", "portable:differential"], 120_000));
 results.push(run("client", "pnpm", ["run", "client:check"], 120_000));
 results.push(run("simulator", "pnpm", ["run", "simulator:test"], 120_000));
 results.push(run("liveness", "pnpm", ["run", "liveness:sweep"], 120_000));
@@ -117,6 +119,8 @@ results.push(run("dependency-audit", "pnpm", ["audit", "--audit-level", "high"],
 const tools = Object.fromEntries([
   ["node", version("node", ["--version"])],
   ["pnpm", version("pnpm", ["--version"])],
+  ["cargo", version("cargo", ["--version"])],
+  ["rustc", version("rustc", ["--version"])],
   ["forge", version("forge", ["--version"])],
   ["solc", version("solc", ["--version"], findSolc())],
   ["z3", version("z3", ["--version"])],

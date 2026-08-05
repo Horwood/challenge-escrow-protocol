@@ -31,7 +31,7 @@ before treating anything here as deployable.
 | see why I ended up with this shape | [Research evolution](docs/EVOLUTION.md) |
 | review my assumptions, failures, and remaining gaps | [Threat model](docs/THREAT-MODEL.md) and [security review](docs/SECURITY-REVIEW.md) |
 | reproduce my commitments outside Solidity | [Public vectors](spec/vectors/commitments-v1.json) and [their verifier](tools/verify-vectors.mjs) |
-| inspect the portable terms and evidence boundary | [Portable semantics](docs/PORTABLE-SEMANTICS.md) and [conformance artifacts](spec/README.md) |
+| inspect the portable terms and evidence boundary | [Portable semantics](docs/PORTABLE-SEMANTICS.md), [error catalog](docs/PORTABLE-ERROR-CATALOG.md), and [conformance artifacts](spec/README.md) |
 | read or change my code | [Reading guide](docs/READING-GUIDE.md) and [contribution notes](CONTRIBUTING.md) |
 
 ## The whole idea
@@ -94,13 +94,25 @@ have not proved.
 <details>
 <summary>Requirements and commands</summary>
 
-I require Node.js 22.15.1 or newer, pnpm 10, and Foundry.
+I require Node.js 22.15.1 or newer, pnpm 10, and Foundry. The full portable
+semantics gate also uses the pinned Rust toolchain in `rust-toolchain.toml`.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm check
 pnpm audit:dependencies
 ```
+
+For the portable boundary, I run:
+
+```sh
+rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
+pnpm run check:depth2
+```
+
+That gate runs the Solidity baseline, schema checks, JavaScript/Python/Rust
+conformance implementations, the twelve-case negative corpus, and the
+locked dependency audit.
 
 `pnpm check` verifies formatting, recomputes my public commitment boundary,
 builds with the pinned compiler, and runs the security profile. I include no
