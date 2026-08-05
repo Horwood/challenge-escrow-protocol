@@ -17,4 +17,5 @@ slither_results.json
 tools/medusa/corpus/
 tools/medusa/crytic-export/
 tools/medusa/slither_results.json
+tools/formal/out/
 __pycache__/

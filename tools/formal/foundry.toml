@@ -1,0 +1,23 @@
+[profile.default]
+src = "src"
+test = "test"
+out = "out"
+cache_path = "cache"
+libs = ["../../node_modules"]
+solc = "0.8.36"
+auto_detect_solc = false
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 1
+bytecode_hash = "none"
+extra_output = ["storageLayout"]
+remappings = [
+    "@openzeppelin/contracts/=../../node_modules/.pnpm/@openzeppelin+contracts@5.6.1/node_modules/@openzeppelin/contracts/",
+    "protocol/=../../contracts/src/"
+]
+allow_paths = ["../../contracts/src", "../../node_modules"]
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = true

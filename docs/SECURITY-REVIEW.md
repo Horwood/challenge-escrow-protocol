@@ -70,6 +70,10 @@ test.
 - I have not run live-chain, wallet, key-management, monitoring, or
   incident-response tests; the reorganization observer and liveness lab are
   local simulations.
+- I now run a five-property Halmos boundary harness against the production
+  release surface and commitment libraries. It has zero counterexamples for
+  its stated properties, while full lifecycle, arbitrary token, and live-chain
+  symbolic coverage remain open.
 - I make no legal or regulatory clearance claim.
 
 ## Checks I ran

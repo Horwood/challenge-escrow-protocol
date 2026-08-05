@@ -1,0 +1,41 @@
+{
+  "schema": "challenge-escrow.formal-proof-ledger/v1",
+  "tool": {
+    "name": "halmos",
+    "version": "0.3.3",
+    "solver": "z3",
+    "scope": "contract-coupled boundary plus exact arithmetic lemmas"
+  },
+  "properties": [
+    {
+      "id": "F-01",
+      "name": "execution hash delegates to production commitment library",
+      "status": "PROVED",
+      "test": "check_executionHashDelegates"
+    },
+    {
+      "id": "F-02",
+      "name": "spec hash delegates to production commitment library",
+      "status": "PROVED",
+      "test": "check_specHashDelegates"
+    },
+    {
+      "id": "F-03",
+      "name": "EIP-712 domain separator delegates to production hash library",
+      "status": "PROVED",
+      "test": "check_domainSeparatorDelegates"
+    },
+    {
+      "id": "F-04",
+      "name": "equal-stake payout remains representable under its precondition",
+      "status": "PROVED",
+      "test": "check_stakePayoutBoundary"
+    },
+    {
+      "id": "F-05",
+      "name": "arbitration deadline arithmetic remains representable under constructor bounds",
+      "status": "PROVED",
+      "test": "check_deadlineBoundary"
+    }
+  ]
+}

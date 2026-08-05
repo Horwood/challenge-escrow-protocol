@@ -129,6 +129,21 @@ Foundry stateful suite remain separate evidence sources, and the formal file
 is deliberately a shadow specification so that it cannot silently replace the
 production implementation.
 
+## Contract-coupled symbolic boundary
+
+I added `tools/formal/src/ChallengeEscrowHalmosProperties.sol`, which calls the
+production `ChallengeEscrow` accessors and the exact production commitment
+libraries under symbolic inputs. `pnpm run formal:contract` proves five
+properties with Halmos 0.3.3 and Z3; the machine-readable ledger and its scope
+are recorded in `docs/FORMAL-PROOF-LEDGER.md` and
+`tools/formal/proof-ledger.json`.
+
+This closes the previous gap between a pure arithmetic shadow specification and
+the release's public hash surface. It does not turn the research release into
+an independent audit, and it leaves external token behavior, complete stateful
+sequences, event completeness, and live-chain conditions open for later
+branches.
+
 ## Evidence still required for this ledger
 
 I consider the first stage complete only after the following gaps have a named

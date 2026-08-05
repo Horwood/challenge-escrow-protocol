@@ -14,7 +14,7 @@ independent evidence beside it:
 | --- | --- | --- |
 | Specification | `docs/INVARIANTS.md` | State vocabulary, transition ledger, and property status |
 | Differential model | `tools/model/` | A pure JavaScript execution model with deterministic and random traces |
-| Arithmetic boundary | `tools/formal/` | Solc CHC/Z3 checks for derived payout and deadline arithmetic |
+| Arithmetic and symbolic boundary | `tools/formal/` | Solc CHC/Z3 checks plus a Halmos conformance harness for the production release surface |
 | Attack planning | `docs/ATTACK-MATRIX.md` | Reachable attack families, branch gaps, and mutation kill targets |
 | Independent EVM run | `tools/medusa/` | A shadow state machine fuzzed by a separate execution engine |
 | Public conformance | `spec/vectors/` and `tools/verify-vectors.mjs` | Commitment bytes and hashes outside the Solidity implementation |
@@ -32,6 +32,7 @@ pnpm install --frozen-lockfile
 pnpm run check
 pnpm run model:test
 pnpm run formal:check
+pnpm run formal:contract
 pnpm run size:check
 pnpm run schemas:check
 pnpm run portable:check
@@ -68,6 +69,10 @@ I have the following local results for this revision:
 - The CHC/Z3 arithmetic boundary checks prove the selected payout and deadline
   assertions safe under the production preconditions; they do not prove the
   whole contract.
+- The Halmos contract boundary proves five selected delegation and arithmetic
+  properties with zero counterexamples. Its ledger is in
+  `docs/FORMAL-PROOF-LEDGER.md`; it does not prove arbitrary token behavior or
+  every stateful lifecycle path.
 - The branch baseline reports one uncovered production branch. I ran the 12
   representative mutation targets in isolated temporary copies: all 12 were
   killed and none survived. This is a measured local mutation baseline, not a
