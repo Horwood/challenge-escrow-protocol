@@ -227,6 +227,26 @@ contract ChallengeEscrowSecurityTest {
         _assertPaid(challengeId, challenger, STAKE * 2, 0);
     }
 
+    function testNonOneTokenReturnsFailClosedForPullAndPush() public {
+        ChallengeTypes.ChallengeExecution memory execution =
+            _execution(bytes32(uint256(524)), ChallengeTypes.Side.A);
+        bytes32 specHash =
+            release.computeSpecHash(release.computeExecutionHash(execution), TERMS_HASH);
+        token.setOutgoingMode(AdversarialToken.OutgoingMode.RETURN_NON_ONE);
+        vm.expectPartialRevert(ExactTokenDelta.TokenTransferFromMalformedReturn.selector);
+        vm.prank(challenger);
+        release.createAndFund(execution, TERMS_HASH, specHash);
+
+        token.setOutgoingMode(AdversarialToken.OutgoingMode.NORMAL);
+        bytes32 challengeId =
+            _resolved(bytes32(uint256(525)), ChallengeTypes.Side.A, ChallengeTypes.Outcome.A);
+        token.setOutgoingMode(AdversarialToken.OutgoingMode.RETURN_NON_ONE);
+        vm.expectPartialRevert(ExactTokenDelta.TokenTransferMalformedReturn.selector);
+        vm.prank(challenger);
+        release.claimWinnings(challengeId);
+        _assertClaimable(challengeId, challenger, STAKE * 2);
+    }
+
     function testEveryEscrowAndRecipientDeltaMismatchRevertsAtomically() public {
         bytes32 challengeId =
             _resolved(bytes32(uint256(516)), ChallengeTypes.Side.A, ChallengeTypes.Outcome.A);

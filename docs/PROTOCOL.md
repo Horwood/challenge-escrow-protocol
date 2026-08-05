@@ -60,4 +60,7 @@ deadline.
 
 I publish the research namespace as `challenge-escrow-protocol/v1`. I keep
 contract releases direct and non-upgradeable. I require a new namespace and new
-conformance vectors for every semantic or cryptographic change.
+conformance vectors for every semantic or cryptographic change. The portable
+terms, evidence, and condition envelopes use their own versioned identifiers;
+their canonical bytes and domain-separated hashes are documented in
+[portable semantics](PORTABLE-SEMANTICS.md).

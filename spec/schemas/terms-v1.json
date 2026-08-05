@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.terms/v1",
+  "title": "Challenge Escrow terms v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "condition", "sources", "resolutionPolicy"],
+  "properties": {
+    "schema": { "const": "challenge-escrow.terms/v1" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "condition": { "$ref": "condition-language-v1.json" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "resolutionPolicy": { "$ref": "#/$defs/resolutionPolicy" },
+    "metadata": { "$ref": "#/$defs/metadata" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "locator"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._~-]{1,64}$" },
+        "kind": { "enum": ["chain-log", "api", "document", "manual"] },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "trust": { "enum": ["untrusted", "authenticated"] }
+      }
+    },
+    "resolutionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conditionLanguage", "allowedOutcomes", "voidReasons"],
+      "properties": {
+        "conditionLanguage": { "const": "challenge-escrow.condition-language/v1" },
+        "allowedOutcomes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": { "enum": ["A", "B", "VOID"] }
+        },
+        "voidReasons": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SOURCE_UNAVAILABLE",
+              "INSUFFICIENT_DATA",
+              "INVALID_OBSERVATION",
+              "AMBIGUOUS_SOURCE_RECORD",
+              "EVIDENCE_UNAVAILABLE",
+              "TERMS_UNRESOLVABLE"
+            ]
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "locale": { "type": "string", "pattern": "^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$" },
+        "termsVersion": { "type": "string", "pattern": "^[A-Za-z0-9._~-]{1,32}$" }
+      }
+    }
+  }
+}

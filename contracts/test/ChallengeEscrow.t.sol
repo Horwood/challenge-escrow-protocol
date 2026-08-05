@@ -61,7 +61,70 @@ contract CommitmentHarness {
     }
 }
 
+contract SelfAddressFactory {
+    function predictedChild() public view returns (address) {
+        // A contract's first CREATE uses nonce one. The RLP payload is
+        // [20-byte address, one-byte nonce].
+        return address(
+            uint160(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(bytes1(0xd6), bytes1(0x94), address(this), bytes1(0x01))
+                    )
+                )
+            )
+        );
+    }
+
+    function deployCanonicalSelf(address resolver, address arbiter, address pauser)
+        external
+        returns (address)
+    {
+        return address(new ChallengeEscrow(predictedChild(), 6, resolver, arbiter, pauser, false));
+    }
+
+    function deployPauserSelf(address token, address resolver, address arbiter)
+        external
+        returns (address)
+    {
+        return address(new ChallengeEscrow(token, 6, resolver, arbiter, predictedChild(), false));
+    }
+}
+
 contract ChallengeEscrowTest {
+    struct ReleaseDeclaredEventData {
+        string eventProtocolId;
+        string protocolVersion;
+        string challengeSchemaId;
+        string evidenceSchemaId;
+        uint256 chainId;
+        address escrowContract;
+        address canonicalToken;
+        uint8 tokenDecimals;
+        uint8 valueMode;
+        address resolver;
+        address arbiter;
+        bool initialPaused;
+    }
+
+    struct ChallengeCreatedEventData {
+        bytes32 specHash;
+        bytes32 instanceNonce;
+        uint8 challengerSide;
+        uint256 stakeAmount;
+        uint256 acceptanceNonce;
+        uint64 acceptanceDeadline;
+        uint64 observationTime;
+        uint64 sourceCorrectionCutoff;
+        uint64 proposalDeadline;
+        uint64 disputeWindowSeconds;
+        uint64 arbitrationWindowSeconds;
+        uint64 timeoutVoidAt;
+        bytes32 executionHash;
+        bytes32 termsHash;
+        uint64 createdAt;
+    }
+
     VmChallenge private constant vm =
         VmChallenge(address(uint160(uint256(keccak256("hevm cheat code")))));
 
@@ -79,6 +142,9 @@ contract ChallengeEscrowTest {
     bytes32 private constant AMBIGUOUS_EVIDENCE_HASH = keccak256("ambiguous-canonicality");
     bytes32 private constant RELEASE_DECLARED_SIGNATURE = keccak256(
         "ReleaseDeclared(bytes32,string,string,string,string,uint256,address,address,uint8,uint8,address,address,bool)"
+    );
+    bytes32 private constant CHALLENGE_CREATED_SIGNATURE = keccak256(
+        "ChallengeCreated(bytes32,bytes32,bytes32,address,uint8,uint256,uint256,uint64,uint64,uint64,uint64,uint64,uint64,uint64,bytes32,bytes32,uint64)"
     );
 
     address private constant RESOLVER = address(0xBEEF);
@@ -138,7 +204,89 @@ contract ChallengeEscrowTest {
         require(logs.length == 1 && logs[0].emitter == address(declared));
         require(logs[0].topics.length == 2 && logs[0].topics[0] == RELEASE_DECLARED_SIGNATURE);
         require(logs[0].topics[1] == declared.releaseId());
-        require(keccak256(logs[0].data) == keccak256(_expectedReleaseData(address(declared))));
+        ReleaseDeclaredEventData memory eventData = _decodeReleaseDeclared(logs[0].data);
+        require(
+            keccak256(bytes(eventData.eventProtocolId))
+                == keccak256(bytes(declared.EVENT_PROTOCOL_ID())),
+            "event protocol id"
+        );
+        require(
+            keccak256(bytes(eventData.protocolVersion))
+                == keccak256(bytes(declared.PROTOCOL_VERSION())),
+            "protocol version"
+        );
+        require(
+            keccak256(bytes(eventData.challengeSchemaId))
+                == keccak256(bytes(declared.CHALLENGE_SCHEMA_ID())),
+            "challenge schema"
+        );
+        require(
+            keccak256(bytes(eventData.evidenceSchemaId))
+                == keccak256(bytes(declared.EVIDENCE_SCHEMA_ID())),
+            "evidence schema"
+        );
+        require(eventData.chainId == block.chainid, "chain id");
+        require(eventData.escrowContract == address(declared), "escrow address");
+        require(eventData.canonicalToken == address(token), "token address");
+        require(eventData.tokenDecimals == declared.tokenDecimals(), "token decimals");
+        require(
+            eventData.valueMode == uint8(ChallengeTypes.ValueMode.TESTNET_NO_VALUE), "value mode"
+        );
+        require(eventData.resolver == declared.resolver(), "resolver");
+        require(eventData.arbiter == declared.arbiter(), "arbiter");
+        require(eventData.initialPaused == declared.paused(), "paused");
+    }
+
+    function testChallengeCreatedEventReconcilesStorageAndCreatesNoEntitlement() public {
+        ChallengeTypes.ChallengeExecution memory execution =
+            _execution(bytes32(uint256(291)), ChallengeTypes.Side.B);
+        bytes32 specHash =
+            release.computeSpecHash(release.computeExecutionHash(execution), EVENT_TERMS_HASH);
+        vm.recordLogs();
+        vm.prank(challenger);
+        bytes32 challengeId = release.createAndFund(execution, EVENT_TERMS_HASH, specHash);
+        VmChallenge.Log[] memory logs = vm.getRecordedLogs();
+        VmChallenge.Log memory created;
+        uint256 matches;
+        for (uint256 index = 0; index < logs.length; index++) {
+            if (
+                logs[index].emitter == address(release)
+                    && logs[index].topics[0] == CHALLENGE_CREATED_SIGNATURE
+            ) {
+                created = logs[index];
+                matches += 1;
+            }
+        }
+        require(matches == 1);
+        require(created.topics.length == 3 && created.topics[1] == challengeId);
+        require(address(uint160(uint256(created.topics[2]))) == challenger);
+
+        ChallengeCreatedEventData memory eventData =
+            abi.decode(created.data, (ChallengeCreatedEventData));
+        ChallengeTypes.Challenge memory challenge = release.getChallenge(challengeId);
+        require(
+            eventData.specHash == challenge.specHash
+                && eventData.instanceNonce == challenge.instanceNonce
+        );
+        require(
+            eventData.challengerSide == uint8(challenge.challengerSide)
+                && eventData.stakeAmount == challenge.stakeAmount
+        );
+        require(eventData.acceptanceNonce == challenge.acceptanceNonce);
+        require(eventData.acceptanceDeadline == challenge.acceptanceDeadline);
+        require(eventData.observationTime == challenge.observationTime);
+        require(eventData.sourceCorrectionCutoff == challenge.sourceCorrectionCutoff);
+        require(eventData.proposalDeadline == challenge.proposalDeadline);
+        require(eventData.disputeWindowSeconds == challenge.disputeWindowSeconds);
+        require(eventData.arbitrationWindowSeconds == challenge.arbitrationWindowSeconds);
+        require(eventData.timeoutVoidAt == challenge.timeoutVoidAt);
+        require(
+            eventData.executionHash == challenge.executionHash
+                && eventData.termsHash == challenge.termsHash
+        );
+        require(eventData.createdAt == challenge.createdAt);
+        require(!release.getEntitlement(challengeId, challenger).exists);
+        require(release.totalOutstandingLiability() == execution.stakeAmount);
     }
 
     function testGoldenCommitments() public {
@@ -338,6 +486,584 @@ contract ChallengeEscrowTest {
         require(release.getChallenge(zeroId).state == ChallengeTypes.LifecycleState.PROPOSED);
     }
 
+    function testConstructorRejectsRoleAndTokenBoundaries() public {
+        vm.expectPartialRevert(ChallengeEscrowKernel.ZeroCanonicalToken.selector);
+        new ChallengeEscrow(address(0), 6, RESOLVER, ARBITER, PAUSER, false);
+
+        vm.expectPartialRevert(ChallengeEscrowKernel.ZeroResolver.selector);
+        new ChallengeEscrow(address(token), 6, address(0), ARBITER, PAUSER, false);
+
+        vm.expectPartialRevert(ChallengeEscrowKernel.ZeroArbiter.selector);
+        new ChallengeEscrow(address(token), 6, RESOLVER, address(0), PAUSER, false);
+
+        vm.expectPartialRevert(ChallengeEscrowKernel.ResolverEqualsArbiter.selector);
+        new ChallengeEscrow(address(token), 6, RESOLVER, RESOLVER, PAUSER, false);
+
+        vm.expectPartialRevert(ChallengeEscrowKernel.UnsupportedTokenDecimals.selector);
+        new ChallengeEscrow(address(token), 19, RESOLVER, ARBITER, PAUSER, false);
+
+        vm.expectPartialRevert(ChallengeEscrow.ZeroPauser.selector);
+        new ChallengeEscrow(address(token), 6, RESOLVER, ARBITER, address(0), false);
+
+        vm.expectPartialRevert(ChallengeEscrow.ResolverRoleOverlap.selector);
+        new ChallengeEscrow(address(token), 6, address(token), ARBITER, PAUSER, false);
+
+        vm.expectPartialRevert(ChallengeEscrow.ArbiterRoleOverlap.selector);
+        new ChallengeEscrow(address(token), 6, RESOLVER, address(token), PAUSER, false);
+
+        vm.expectPartialRevert(ChallengeEscrow.PauserRoleOverlap.selector);
+        new ChallengeEscrow(address(token), 6, RESOLVER, ARBITER, RESOLVER, false);
+
+        vm.expectPartialRevert(ChallengeEscrow.PauserRoleOverlap.selector);
+        new ChallengeEscrow(address(token), 6, RESOLVER, ARBITER, ARBITER, false);
+
+        vm.expectPartialRevert(ChallengeEscrow.PauserRoleOverlap.selector);
+        new ChallengeEscrow(address(token), 6, RESOLVER, ARBITER, address(token), false);
+    }
+
+    function testConstructorRejectsSelfReferentialTokenAndPauser() public {
+        SelfAddressFactory canonicalFactory = new SelfAddressFactory();
+        vm.expectPartialRevert(ChallengeEscrowKernel.CanonicalTokenEqualsEscrow.selector);
+        canonicalFactory.deployCanonicalSelf(RESOLVER, ARBITER, PAUSER);
+
+        SelfAddressFactory pauserFactory = new SelfAddressFactory();
+        vm.expectPartialRevert(ChallengeEscrow.PauserRoleOverlap.selector);
+        pauserFactory.deployPauserSelf(address(token), RESOLVER, ARBITER);
+    }
+
+    function testPauseBlocksCreationAcceptanceAndProposal() public {
+        ChallengeTypes.ChallengeExecution memory execution =
+            _execution(bytes32(uint256(6)), ChallengeTypes.Side.A);
+        bytes32 specHash =
+            release.computeSpecHash(release.computeExecutionHash(execution), EVENT_TERMS_HASH);
+
+        _setPaused(true);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ContractPaused.selector);
+        vm.prank(challenger);
+        release.createAndFund(execution, EVENT_TERMS_HASH, specHash);
+
+        _setPaused(false);
+        vm.prank(challenger);
+        bytes32 challengeId = release.createAndFund(execution, EVENT_TERMS_HASH, specHash);
+        ChallengeTypes.AcceptancePermit memory permit = ChallengeTypes.AcceptancePermit({
+            challengeId: challengeId,
+            specHash: specHash,
+            acceptingWallet: acceptor,
+            acceptanceNonce: 0,
+            expiresAt: execution.acceptanceDeadline
+        });
+        (uint8 v, bytes32 r, bytes32 s) =
+            vm.sign(CHALLENGER_KEY, release.hashAcceptancePermit(permit));
+
+        _setPaused(true);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ContractPaused.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+
+        _setPaused(false);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+        vm.warp(execution.observationTime);
+        _setPaused(true);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ContractPaused.selector);
+        vm.prank(RESOLVER);
+        release.propose(challengeId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+    }
+
+    function testCreateRejectsEveryExecutionBoundary() public {
+        ChallengeTypes.ChallengeExecution memory execution =
+            _execution(bytes32(uint256(7)), ChallengeTypes.Side.A);
+
+        execution.nonce = bytes32(0);
+        _expectCreateRevert(execution, ChallengeEscrowKernel.ZeroInstanceNonce.selector, challenger);
+        execution = _execution(bytes32(uint256(8)), ChallengeTypes.Side.A);
+        execution.chainId = block.chainid + 1;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidExecutionChain.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(9)), ChallengeTypes.Side.A);
+        execution.escrowContract = address(0x1234);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidExecutionEscrow.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(10)), ChallengeTypes.Side.A);
+        execution.token = address(0x1234);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidExecutionToken.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(11)), ChallengeTypes.Side.A);
+        execution.tokenDecimals = 7;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidExecutionTokenDecimals.selector, challenger
+        );
+
+        execution = _execution(bytes32(uint256(12)), ChallengeTypes.Side.A);
+        execution.challengerWallet = address(0);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidChallengerWallet.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(13)), ChallengeTypes.Side.A);
+        execution.challengerWallet = address(release);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidChallengerWallet.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(14)), ChallengeTypes.Side.A);
+        execution.challengerWallet = address(token);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidChallengerWallet.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(15)), ChallengeTypes.Side.A);
+        execution.challengerWallet = RESOLVER;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidChallengerWallet.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(16)), ChallengeTypes.Side.A);
+        execution.challengerWallet = ARBITER;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidChallengerWallet.selector, challenger
+        );
+
+        execution = _execution(bytes32(uint256(17)), ChallengeTypes.Side.A);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.CallerNotChallenger.selector, address(0xCAFE)
+        );
+        execution = _execution(bytes32(uint256(18)), ChallengeTypes.Side.A);
+        execution.stakeAmount = 0;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidStakeAmount.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(19)), ChallengeTypes.Side.A);
+        execution.stakeAmount = type(uint256).max / 2 + 1;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidStakeAmount.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(20)), ChallengeTypes.Side.A);
+        execution.createdAt = uint64(block.timestamp + 1);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.CreatedAtAfterOpening.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(21)), ChallengeTypes.Side.A);
+        execution.acceptanceDeadline = uint64(block.timestamp);
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidAcceptanceDeadline.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(22)), ChallengeTypes.Side.A);
+        execution.observationTime = execution.acceptanceDeadline;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidObservationTime.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(23)), ChallengeTypes.Side.A);
+        execution.proposalDeadline = execution.observationTime;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidProposalDeadline.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(24)), ChallengeTypes.Side.A);
+        execution.disputeWindowSeconds = 0;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidDisputeWindow.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(25)), ChallengeTypes.Side.A);
+        execution.arbitrationWindowSeconds = 0;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidArbitrationWindow.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(26)), ChallengeTypes.Side.A);
+        execution.sourceCorrectionCutoff = execution.observationTime;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidSourceCorrectionCutoff.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(27)), ChallengeTypes.Side.A);
+        execution.sourceCorrectionCutoff = execution.proposalDeadline;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidSourceCorrectionCutoff.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(28)), ChallengeTypes.Side.A);
+        execution.disputeWindowSeconds = 100;
+        execution.sourceCorrectionCutoff = execution.observationTime + 100;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidSourceCorrectionCutoff.selector, challenger
+        );
+        execution = _execution(bytes32(uint256(29)), ChallengeTypes.Side.A);
+        execution.timeoutVoidAt = execution.proposalDeadline + execution.disputeWindowSeconds
+            + execution.arbitrationWindowSeconds - 1;
+        _expectCreateRevert(
+            execution, ChallengeEscrowKernel.InvalidTimeoutVoidAt.selector, challenger
+        );
+
+        execution = _execution(bytes32(uint256(290)), ChallengeTypes.Side.A);
+        execution.timeoutVoidAt = execution.proposalDeadline + execution.disputeWindowSeconds
+            + execution.arbitrationWindowSeconds;
+        bytes32 exactTimeoutSpecHash =
+            release.computeSpecHash(release.computeExecutionHash(execution), EVENT_TERMS_HASH);
+        vm.prank(challenger);
+        release.createAndFund(execution, EVENT_TERMS_HASH, exactTimeoutSpecHash);
+    }
+
+    function testCreateRejectsDuplicateChallengeAndInstanceNonceReplay() public {
+        ChallengeTypes.ChallengeExecution memory execution =
+            _execution(bytes32(uint256(30)), ChallengeTypes.Side.A);
+        bytes32 specHash =
+            release.computeSpecHash(release.computeExecutionHash(execution), EVENT_TERMS_HASH);
+        vm.expectPartialRevert(ChallengeEscrowKernel.SpecHashMismatch.selector);
+        vm.prank(challenger);
+        release.createAndFund(execution, EVENT_TERMS_HASH, bytes32(0));
+        vm.prank(challenger);
+        release.createAndFund(execution, EVENT_TERMS_HASH, specHash);
+
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeAlreadyExists.selector);
+        vm.prank(challenger);
+        release.createAndFund(execution, EVENT_TERMS_HASH, specHash);
+
+        execution.stakeAmount += 1;
+        bytes32 changedSpecHash =
+            release.computeSpecHash(release.computeExecutionHash(execution), EVENT_TERMS_HASH);
+        vm.expectPartialRevert(ChallengeEscrowKernel.InstanceNonceAlreadyUsed.selector);
+        vm.prank(challenger);
+        release.createAndFund(execution, EVENT_TERMS_HASH, changedSpecHash);
+    }
+
+    function testAcceptanceRejectsEveryPermitBindingBoundary() public {
+        ChallengeTypes.ChallengeExecution memory execution =
+            _execution(bytes32(uint256(31)), ChallengeTypes.Side.A);
+        bytes32 specHash =
+            release.computeSpecHash(release.computeExecutionHash(execution), EVENT_TERMS_HASH);
+        vm.prank(challenger);
+        bytes32 challengeId = release.createAndFund(execution, EVENT_TERMS_HASH, specHash);
+        ChallengeTypes.AcceptancePermit memory permit = ChallengeTypes.AcceptancePermit({
+            challengeId: challengeId,
+            specHash: specHash,
+            acceptingWallet: acceptor,
+            acceptanceNonce: 0,
+            expiresAt: execution.acceptanceDeadline
+        });
+        (uint8 v, bytes32 r, bytes32 s) =
+            vm.sign(CHALLENGER_KEY, release.hashAcceptancePermit(permit));
+
+        permit.challengeId = bytes32(uint256(1));
+        vm.expectPartialRevert(ChallengeEscrowKernel.PermitChallengeIdMismatch.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+        permit.challengeId = challengeId;
+        permit.specHash = bytes32(uint256(2));
+        vm.expectPartialRevert(ChallengeEscrowKernel.PermitSpecHashMismatch.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+        permit.specHash = specHash;
+        vm.expectPartialRevert(ChallengeEscrowKernel.CallerNotAcceptingWallet.selector);
+        vm.prank(address(0xCAFE));
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+        permit.acceptanceNonce = 1;
+        vm.expectPartialRevert(ChallengeEscrowKernel.PermitNonceMismatch.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+        permit.acceptanceNonce = 0;
+        permit.expiresAt = 0;
+        vm.expectPartialRevert(ChallengeEscrowKernel.InvalidPermitExpiry.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+        permit.expiresAt = execution.acceptanceDeadline + 1;
+        vm.expectPartialRevert(ChallengeEscrowKernel.InvalidPermitExpiry.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+        permit.expiresAt = execution.acceptanceDeadline;
+        vm.expectPartialRevert(ChallengeEscrowKernel.InvalidPermitSignature.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, bytes(""));
+        (v, r, s) = vm.sign(ACCEPTOR_KEY, release.hashAcceptancePermit(permit));
+        vm.expectPartialRevert(ChallengeEscrowKernel.InvalidPermitSigner.selector);
+        vm.prank(acceptor);
+        release.accept(challengeId, permit, abi.encodePacked(r, s, v));
+    }
+
+    function testLifecycleBoundariesRejectEarlyLateAndUnauthorizedActions() public {
+        ChallengeTypes.ChallengeExecution memory openExecution =
+            _execution(bytes32(uint256(32)), ChallengeTypes.Side.A);
+        bytes32 openSpecHash = release.computeSpecHash(
+            release.computeExecutionHash(openExecution), EVENT_TERMS_HASH
+        );
+        vm.prank(challenger);
+        bytes32 openId = release.createAndFund(openExecution, EVENT_TERMS_HASH, openSpecHash);
+        vm.warp(openExecution.acceptanceDeadline);
+        vm.expectPartialRevert(ChallengeEscrowKernel.AcceptanceWindowClosed.selector);
+        vm.prank(challenger);
+        release.cancelOpen(openId);
+
+        ChallengeTypes.ChallengeExecution memory activeExecution;
+        bytes32 activeId;
+        (activeId, activeExecution) = _active(bytes32(uint256(33)), ChallengeTypes.Side.A);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ObservationNotReached.selector);
+        vm.prank(RESOLVER);
+        release.propose(activeId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+        vm.warp(activeExecution.proposalDeadline);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ProposalWindowClosed.selector);
+        vm.prank(RESOLVER);
+        release.propose(activeId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+
+        ChallengeTypes.ChallengeExecution memory correctionExecution;
+        bytes32 correctionId;
+        (correctionId, correctionExecution) = _active(bytes32(uint256(34)), ChallengeTypes.Side.A);
+        vm.warp(correctionExecution.observationTime);
+        vm.expectPartialRevert(ChallengeEscrowKernel.SourceCorrectionCutoffNotReached.selector);
+        vm.prank(RESOLVER);
+        release.propose(
+            correctionId,
+            ChallengeTypes.Outcome.VOID,
+            uint8(ChallengeTypes.EvidenceVoidReason.INSUFFICIENT_DATA),
+            EVENT_MATCH_EVIDENCE_HASH
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.InvalidOutcomeReason.selector);
+        vm.warp(correctionExecution.sourceCorrectionCutoff);
+        vm.prank(RESOLVER);
+        release.propose(correctionId, ChallengeTypes.Outcome.VOID, 6, EVENT_MATCH_EVIDENCE_HASH);
+
+        ChallengeTypes.ChallengeExecution memory proposedExecution;
+        bytes32 proposedId;
+        (proposedId, proposedExecution) = _active(bytes32(uint256(35)), ChallengeTypes.Side.A);
+        vm.warp(proposedExecution.observationTime);
+        vm.prank(RESOLVER);
+        release.propose(proposedId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+        uint64 disputeDeadline = release.getChallenge(proposedId).proposal.disputeDeadline;
+        vm.expectPartialRevert(ChallengeEscrowKernel.DisputeDeadlineNotReached.selector);
+        release.finalizeUncontested(proposedId);
+        vm.expectPartialRevert(ChallengeEscrowKernel.CallerNotParticipant.selector);
+        vm.prank(address(0xCAFE));
+        release.dispute(
+            proposedId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_ABSENCE_EVIDENCE_HASH,
+            EVENT_MATCH_EVIDENCE_HASH
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.DisputeOutcomeUnchanged.selector);
+        vm.prank(challenger);
+        release.dispute(
+            proposedId,
+            ChallengeTypes.Outcome.A,
+            0,
+            EVENT_ABSENCE_EVIDENCE_HASH,
+            EVENT_MATCH_EVIDENCE_HASH
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.ZeroEvidenceHash.selector);
+        vm.prank(challenger);
+        release.dispute(
+            proposedId, ChallengeTypes.Outcome.B, 0, bytes32(0), EVENT_MATCH_EVIDENCE_HASH
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.ParentEvidenceHashMismatch.selector);
+        vm.prank(challenger);
+        release.dispute(
+            proposedId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_ABSENCE_EVIDENCE_HASH,
+            bytes32(uint256(1))
+        );
+        vm.warp(disputeDeadline);
+        vm.expectPartialRevert(ChallengeEscrowKernel.DisputeWindowClosed.selector);
+        vm.prank(challenger);
+        release.dispute(
+            proposedId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_ABSENCE_EVIDENCE_HASH,
+            EVENT_MATCH_EVIDENCE_HASH
+        );
+        release.finalizeUncontested(proposedId);
+    }
+
+    function testArbitrationBoundariesAndPermissionlessTimeout() public {
+        ChallengeTypes.ChallengeExecution memory execution;
+        bytes32 challengeId;
+        (challengeId, execution) = _active(bytes32(uint256(36)), ChallengeTypes.Side.A);
+        vm.warp(execution.observationTime);
+        vm.prank(RESOLVER);
+        release.propose(challengeId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+        vm.prank(challenger);
+        release.dispute(
+            challengeId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_ABSENCE_EVIDENCE_HASH,
+            EVENT_MATCH_EVIDENCE_HASH
+        );
+        ChallengeTypes.Challenge memory disputed = release.getChallenge(challengeId);
+        vm.expectPartialRevert(ChallengeEscrowKernel.CallerNotArbiter.selector);
+        vm.prank(address(0xCAFE));
+        release.arbitrate(
+            challengeId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_MATCH_EVIDENCE_HASH,
+            EVENT_ABSENCE_EVIDENCE_HASH
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.SourceCorrectionCutoffNotReached.selector);
+        vm.prank(ARBITER);
+        release.arbitrate(
+            challengeId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_MATCH_EVIDENCE_HASH,
+            EVENT_ABSENCE_EVIDENCE_HASH
+        );
+        vm.warp(disputed.dispute.arbitrationStart);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ZeroEvidenceHash.selector);
+        vm.prank(ARBITER);
+        release.arbitrate(
+            challengeId, ChallengeTypes.Outcome.B, 0, bytes32(0), EVENT_ABSENCE_EVIDENCE_HASH
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.ParentEvidenceHashMismatch.selector);
+        vm.prank(ARBITER);
+        release.arbitrate(
+            challengeId, ChallengeTypes.Outcome.B, 0, EVENT_MATCH_EVIDENCE_HASH, bytes32(uint256(1))
+        );
+        vm.prank(ARBITER);
+        release.arbitrate(
+            challengeId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_MATCH_EVIDENCE_HASH,
+            EVENT_ABSENCE_EVIDENCE_HASH
+        );
+        require(release.getChallenge(challengeId).state == ChallengeTypes.LifecycleState.RESOLVED_B);
+
+        bytes32 voidId;
+        (voidId, execution) = _active(bytes32(uint256(37)), ChallengeTypes.Side.A);
+        vm.warp(execution.observationTime);
+        vm.prank(RESOLVER);
+        release.propose(voidId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+        vm.prank(challenger);
+        release.dispute(
+            voidId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_ABSENCE_EVIDENCE_HASH,
+            EVENT_MATCH_EVIDENCE_HASH
+        );
+        ChallengeTypes.Challenge memory voidDisputed = release.getChallenge(voidId);
+        vm.warp(voidDisputed.dispute.arbitrationStart);
+        vm.prank(ARBITER);
+        release.arbitrate(
+            voidId,
+            ChallengeTypes.Outcome.VOID,
+            uint8(ChallengeTypes.EvidenceVoidReason.INSUFFICIENT_DATA),
+            EVENT_MATCH_EVIDENCE_HASH,
+            EVENT_ABSENCE_EVIDENCE_HASH
+        );
+        require(release.getChallenge(voidId).state == ChallengeTypes.LifecycleState.VOID);
+
+        bytes32 timeoutId;
+        (timeoutId, execution) = _active(bytes32(uint256(38)), ChallengeTypes.Side.A);
+        vm.warp(execution.observationTime);
+        vm.prank(RESOLVER);
+        release.propose(timeoutId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+        vm.prank(challenger);
+        release.dispute(
+            timeoutId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_ABSENCE_EVIDENCE_HASH,
+            EVENT_MATCH_EVIDENCE_HASH
+        );
+        ChallengeTypes.Challenge memory timeoutDisputed = release.getChallenge(timeoutId);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ArbitrationDeadlineNotReached.selector);
+        release.voidUnarbitrated(timeoutId);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ArbitrationWindowClosed.selector);
+        vm.warp(timeoutDisputed.dispute.arbitrationDeadline);
+        vm.prank(ARBITER);
+        release.arbitrate(
+            timeoutId,
+            ChallengeTypes.Outcome.B,
+            0,
+            EVENT_MATCH_EVIDENCE_HASH,
+            EVENT_ABSENCE_EVIDENCE_HASH
+        );
+        release.voidUnarbitrated(timeoutId);
+        require(release.getChallenge(timeoutId).state == ChallengeTypes.LifecycleState.VOID);
+    }
+
+    function testStateGuardsRejectMissingAndWrongLifecycle() public {
+        bytes32 missing = bytes32(uint256(9999));
+        ChallengeTypes.AcceptancePermit memory emptyPermit;
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.accept(missing, emptyPermit, bytes(""));
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.advanceAcceptanceNonce(missing);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.cancelOpen(missing);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.propose(missing, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.dispute(
+            missing, ChallengeTypes.Outcome.B, 0, EVENT_ABSENCE_EVIDENCE_HASH, bytes32(0)
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.finalizeUncontested(missing);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.arbitrate(
+            missing, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH, bytes32(0)
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.voidUnproposed(missing);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.voidUnarbitrated(missing);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotFound.selector);
+        release.refundPrincipal(missing);
+
+        ChallengeTypes.ChallengeExecution memory openExecution =
+            _execution(bytes32(uint256(39)), ChallengeTypes.Side.A);
+        bytes32 openSpecHash =
+            release.computeSpecHash(release.computeExecutionHash(openExecution), EVENT_TERMS_HASH);
+        vm.prank(challenger);
+        bytes32 openId = release.createAndFund(openExecution, EVENT_TERMS_HASH, openSpecHash);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotActive.selector);
+        vm.prank(RESOLVER);
+        release.propose(openId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH);
+
+        ChallengeTypes.ChallengeExecution memory execution;
+        bytes32 activeId;
+        (activeId, execution) = _active(bytes32(uint256(40)), ChallengeTypes.Side.A);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotProposed.selector);
+        release.finalizeUncontested(activeId);
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotProposed.selector);
+        release.dispute(
+            activeId, ChallengeTypes.Outcome.B, 0, EVENT_ABSENCE_EVIDENCE_HASH, bytes32(0)
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotDisputed.selector);
+        release.arbitrate(
+            activeId, ChallengeTypes.Outcome.A, 0, EVENT_MATCH_EVIDENCE_HASH, bytes32(0)
+        );
+        vm.expectPartialRevert(ChallengeEscrowKernel.ChallengeNotDisputed.selector);
+        release.voidUnarbitrated(activeId);
+
+        ChallengeTypes.AcceptancePermit memory challengerPermit = ChallengeTypes.AcceptancePermit({
+            challengeId: openId,
+            specHash: openSpecHash,
+            acceptingWallet: challenger,
+            acceptanceNonce: 0,
+            expiresAt: openExecution.acceptanceDeadline
+        });
+        (uint8 v, bytes32 r, bytes32 s) =
+            vm.sign(CHALLENGER_KEY, release.hashAcceptancePermit(challengerPermit));
+        vm.expectPartialRevert(ChallengeEscrowKernel.InvalidAcceptingWallet.selector);
+        vm.prank(challenger);
+        release.accept(openId, challengerPermit, abi.encodePacked(r, s, v));
+    }
+
+    function _expectCreateRevert(
+        ChallengeTypes.ChallengeExecution memory execution,
+        bytes4 selector,
+        address caller
+    ) private {
+        vm.expectPartialRevert(selector);
+        vm.prank(caller);
+        release.createAndFund(execution, EVENT_TERMS_HASH, bytes32(0));
+    }
+
+    function _setPaused(bool value) private {
+        vm.prank(PAUSER);
+        release.setPaused(value);
+        require(release.paused() == value);
+    }
+
     function _active(bytes32 nonce, ChallengeTypes.Side side)
         private
         returns (bytes32 challengeId, ChallengeTypes.ChallengeExecution memory execution)
@@ -393,20 +1119,14 @@ contract ChallengeEscrowTest {
         release.refundPrincipal(challengeId);
     }
 
-    function _expectedReleaseData(address declared) private view returns (bytes memory) {
-        return abi.encode(
-            "challenge-escrow-event/v1",
-            "challenge-escrow-protocol/v1",
-            "challenge-escrow.spec/v1",
-            "challenge-escrow.evidence/v1",
-            block.chainid,
-            declared,
-            address(token),
-            uint8(6),
-            ChallengeTypes.ValueMode.TESTNET_NO_VALUE,
-            RESOLVER,
-            ARBITER,
-            false
-        );
+    function _decodeReleaseDeclared(bytes memory data)
+        private
+        pure
+        returns (ReleaseDeclaredEventData memory eventData)
+    {
+        // Event data contains the flat non-indexed tuple; the struct decoder expects
+        // the dynamic tuple's outer offset, so I add that ABI envelope explicitly.
+        bytes memory wrapped = abi.encodePacked(bytes32(uint256(32)), data);
+        eventData = abi.decode(wrapped, (ReleaseDeclaredEventData));
     }
 }

@@ -1,0 +1,71 @@
+{
+  "name": "happy-arbiter",
+  "description": "I exercise the disputed path from funding through the accepting wallet claim.",
+  "steps": [
+    {
+      "type": "create",
+      "id": "cli-arbiter",
+      "nonce": "cli-nonce-arbiter",
+      "caller": "challenger",
+      "challenger": "challenger",
+      "challengerSide": "A",
+      "stake": 100,
+      "now": 100,
+      "acceptanceDeadline": 110,
+      "observationTime": 120,
+      "sourceCorrectionCutoff": 125,
+      "proposalDeadline": 150,
+      "disputeWindow": 10,
+      "arbitrationWindow": 20,
+      "timeoutVoidAt": 180,
+      "expect": { "state": "OPEN" }
+    },
+    {
+      "type": "accept",
+      "id": "cli-arbiter",
+      "caller": "acceptor-a",
+      "acceptor": "acceptor-a",
+      "permitNonce": 0,
+      "permitValid": true,
+      "expiresAt": 109,
+      "now": 101,
+      "expect": { "state": "ACTIVE" }
+    },
+    {
+      "type": "propose",
+      "id": "cli-arbiter",
+      "caller": "resolver",
+      "outcome": "A",
+      "evidenceHash": "proposal-cli-arbiter",
+      "now": 120,
+      "expect": { "state": "PROPOSED" }
+    },
+    {
+      "type": "dispute",
+      "id": "cli-arbiter",
+      "caller": "acceptor-a",
+      "outcome": "B",
+      "evidenceHash": "dispute-cli-arbiter",
+      "parentEvidenceHash": "proposal-cli-arbiter",
+      "now": 121,
+      "expect": { "state": "DISPUTED" }
+    },
+    {
+      "type": "arbitrate",
+      "id": "cli-arbiter",
+      "caller": "arbiter",
+      "outcome": "B",
+      "evidenceHash": "final-cli-arbiter",
+      "parentEvidenceHash": "dispute-cli-arbiter",
+      "now": 126,
+      "expect": { "state": "RESOLVED_B" }
+    },
+    {
+      "type": "claim",
+      "id": "cli-arbiter",
+      "caller": "acceptor-a"
+    }
+  ],
+  "finalOutstanding": 0,
+  "finalStates": { "cli-arbiter": "RESOLVED_B" }
+}

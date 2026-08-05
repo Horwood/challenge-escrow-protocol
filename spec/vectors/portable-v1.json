@@ -1,0 +1,85 @@
+{
+  "version": "portable-v1",
+  "terms": {
+    "schema": "challenge-escrow.terms/v1",
+    "title": "Latency threshold challenge",
+    "statement": "The committed score must remain at least 70 while latency stays below 500 milliseconds.",
+    "condition": {
+      "schema": "challenge-escrow.condition-language/v1",
+      "root": {
+        "op": "all",
+        "args": [
+          {
+            "op": "gte",
+            "left": { "ref": "/observations/score/value" },
+            "right": { "kind": "integer", "value": "70" }
+          },
+          {
+            "op": "between",
+            "value": { "ref": "/observations/latency/value" },
+            "lower": { "kind": "integer", "value": "0" },
+            "upper": { "kind": "integer", "value": "500" },
+            "inclusive": true
+          }
+        ]
+      }
+    },
+    "sources": [
+      {
+        "id": "score",
+        "kind": "api",
+        "locator": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "trust": "authenticated"
+      },
+      {
+        "id": "latency",
+        "kind": "chain-log",
+        "locator": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "trust": "authenticated"
+      }
+    ],
+    "resolutionPolicy": {
+      "conditionLanguage": "challenge-escrow.condition-language/v1",
+      "allowedOutcomes": ["A", "B", "VOID"],
+      "voidReasons": ["SOURCE_UNAVAILABLE", "INVALID_OBSERVATION"]
+    },
+    "metadata": { "locale": "en", "termsVersion": "threshold-demo" }
+  },
+  "evidence": {
+    "schema": "challenge-escrow.evidence/v1",
+    "challengeId": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "specHash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "role": "resolver",
+    "outcome": "A",
+    "reasonCode": "0",
+    "capturedAt": "1783908000",
+    "conditionLanguage": "challenge-escrow.condition-language/v1",
+    "observations": [
+      {
+        "id": "score",
+        "sourceId": "score",
+        "observedAt": "1783908001",
+        "value": { "kind": "integer", "value": "75" }
+      },
+      {
+        "id": "latency",
+        "sourceId": "latency",
+        "observedAt": "1783908001",
+        "value": { "kind": "integer", "value": "120" }
+      }
+    ],
+    "evaluations": [
+      { "path": "/root", "result": true, "observationIds": ["score", "latency"] }
+    ],
+    "artifacts": [
+      { "hash": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "mediaType": "application/json", "sizeBytes": "128" }
+    ]
+  },
+  "expected": {
+    "termsCanonical": "{\"condition\":{\"root\":{\"args\":[{\"left\":{\"ref\":\"/observations/score/value\"},\"op\":\"gte\",\"right\":{\"kind\":\"integer\",\"value\":\"70\"}},{\"inclusive\":true,\"lower\":{\"kind\":\"integer\",\"value\":\"0\"},\"op\":\"between\",\"upper\":{\"kind\":\"integer\",\"value\":\"500\"},\"value\":{\"ref\":\"/observations/latency/value\"}}],\"op\":\"all\"},\"schema\":\"challenge-escrow.condition-language/v1\"},\"metadata\":{\"locale\":\"en\",\"termsVersion\":\"threshold-demo\"},\"resolutionPolicy\":{\"allowedOutcomes\":[\"A\",\"B\",\"VOID\"],\"conditionLanguage\":\"challenge-escrow.condition-language/v1\",\"voidReasons\":[\"SOURCE_UNAVAILABLE\",\"INVALID_OBSERVATION\"]},\"schema\":\"challenge-escrow.terms/v1\",\"sources\":[{\"id\":\"score\",\"kind\":\"api\",\"locator\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"trust\":\"authenticated\"},{\"id\":\"latency\",\"kind\":\"chain-log\",\"locator\":\"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"trust\":\"authenticated\"}],\"statement\":\"The committed score must remain at least 70 while latency stays below 500 milliseconds.\",\"title\":\"Latency threshold challenge\"}",
+    "termsHash": "0xed1f9b94f827c1cbf195dc1ccb4f1812840818f9cc6fdbabfaf952ecc90a5746",
+    "evidenceCanonical": "{\"artifacts\":[{\"hash\":\"0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"mediaType\":\"application/json\",\"sizeBytes\":\"128\"}],\"capturedAt\":\"1783908000\",\"challengeId\":\"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"conditionLanguage\":\"challenge-escrow.condition-language/v1\",\"evaluations\":[{\"observationIds\":[\"score\",\"latency\"],\"path\":\"/root\",\"result\":true}],\"observations\":[{\"id\":\"score\",\"observedAt\":\"1783908001\",\"sourceId\":\"score\",\"value\":{\"kind\":\"integer\",\"value\":\"75\"}},{\"id\":\"latency\",\"observedAt\":\"1783908001\",\"sourceId\":\"latency\",\"value\":{\"kind\":\"integer\",\"value\":\"120\"}}],\"outcome\":\"A\",\"reasonCode\":\"0\",\"role\":\"resolver\",\"schema\":\"challenge-escrow.evidence/v1\",\"specHash\":\"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}",
+    "evidenceHash": "0x9e11d784f36cc1675d7957a91016377a583df6425a1419f90cf0af31f6fe4d29",
+    "conditionResult": true
+  }
+}

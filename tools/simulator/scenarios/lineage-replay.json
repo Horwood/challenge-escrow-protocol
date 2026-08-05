@@ -1,0 +1,92 @@
+{
+  "name": "lineage-replay",
+  "description": "I deliberately break evidence lineage and replay a paid entitlement to inspect the exact rejection path.",
+  "steps": [
+    {
+      "type": "create",
+      "id": "cli-lineage",
+      "nonce": "cli-nonce-lineage",
+      "caller": "challenger",
+      "challenger": "challenger",
+      "challengerSide": "A",
+      "stake": 100,
+      "now": 200,
+      "acceptanceDeadline": 210,
+      "observationTime": 220,
+      "sourceCorrectionCutoff": 225,
+      "proposalDeadline": 250,
+      "disputeWindow": 10,
+      "arbitrationWindow": 20,
+      "timeoutVoidAt": 280
+    },
+    {
+      "type": "accept",
+      "id": "cli-lineage",
+      "caller": "acceptor-a",
+      "acceptor": "acceptor-a",
+      "permitNonce": 0,
+      "permitValid": true,
+      "expiresAt": 209,
+      "now": 201
+    },
+    {
+      "type": "propose",
+      "id": "cli-lineage",
+      "caller": "resolver",
+      "outcome": "A",
+      "evidenceHash": "proposal-cli-lineage",
+      "now": 220
+    },
+    {
+      "type": "dispute",
+      "id": "cli-lineage",
+      "caller": "acceptor-a",
+      "outcome": "B",
+      "evidenceHash": "dispute-wrong-parent",
+      "parentEvidenceHash": "not-the-proposal",
+      "now": 221,
+      "expect": { "ok": false, "error": "InvalidEvidenceLineage", "state": "PROPOSED" }
+    },
+    {
+      "type": "dispute",
+      "id": "cli-lineage",
+      "caller": "acceptor-a",
+      "outcome": "B",
+      "evidenceHash": "dispute-cli-lineage",
+      "parentEvidenceHash": "proposal-cli-lineage",
+      "now": 221
+    },
+    {
+      "type": "arbitrate",
+      "id": "cli-lineage",
+      "caller": "arbiter",
+      "outcome": "A",
+      "evidenceHash": "final-wrong-parent",
+      "parentEvidenceHash": "not-the-dispute",
+      "now": 226,
+      "expect": { "ok": false, "error": "InvalidEvidenceLineage", "state": "DISPUTED" }
+    },
+    {
+      "type": "arbitrate",
+      "id": "cli-lineage",
+      "caller": "arbiter",
+      "outcome": "A",
+      "evidenceHash": "final-cli-lineage",
+      "parentEvidenceHash": "dispute-cli-lineage",
+      "now": 226
+    },
+    {
+      "type": "claim",
+      "id": "cli-lineage",
+      "caller": "challenger"
+    },
+    {
+      "type": "claim",
+      "id": "cli-lineage",
+      "caller": "challenger",
+      "expect": { "ok": false, "error": "InvalidEntitlement", "state": "RESOLVED_A" }
+    }
+  ],
+  "finalOutstanding": 0,
+  "finalStates": { "cli-lineage": "RESOLVED_A" }
+}

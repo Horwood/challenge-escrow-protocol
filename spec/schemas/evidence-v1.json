@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.evidence/v1",
+  "title": "Challenge Escrow evidence envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "challengeId",
+    "specHash",
+    "role",
+    "outcome",
+    "reasonCode",
+    "capturedAt",
+    "conditionLanguage",
+    "observations",
+    "artifacts"
+  ],
+  "properties": {
+    "schema": { "const": "challenge-escrow.evidence/v1" },
+    "challengeId": { "$ref": "#/$defs/hash" },
+    "specHash": { "$ref": "#/$defs/hash" },
+    "parentEvidenceHash": { "$ref": "#/$defs/hash" },
+    "role": { "enum": ["resolver", "challenger", "acceptor", "arbiter", "timeout"] },
+    "outcome": { "enum": ["A", "B", "VOID"] },
+    "reasonCode": { "type": "string", "pattern": "^[0-9]{1,2}$" },
+    "capturedAt": { "type": "string", "pattern": "^[0-9]{1,20}$" },
+    "conditionLanguage": { "const": "challenge-escrow.condition-language/v1" },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/observation" }
+    },
+    "evaluations": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/evaluation" }
+    },
+    "artifacts": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/artifact" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "outcome": { "enum": ["A", "B"] } } },
+      "then": { "properties": { "reasonCode": { "pattern": "^[0-3]$" } } }
+    },
+    {
+      "if": { "properties": { "outcome": { "const": "VOID" } } },
+      "then": { "properties": { "reasonCode": { "pattern": "^[0-5]$" } } }
+    }
+  ],
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^0x[0-9a-fA-F]{64}$" },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "sourceId", "observedAt", "value"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._~-]{1,64}$" },
+        "sourceId": { "type": "string", "pattern": "^[A-Za-z0-9._~-]{1,64}$" },
+        "observedAt": { "type": "string", "pattern": "^[0-9]{1,20}$" },
+        "value": { "$ref": "condition-language-v1.json#/$defs/value" }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "result", "observationIds"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^/[A-Za-z0-9._~-]{1,64}(?:/[A-Za-z0-9._~-]{1,64})*$" },
+        "result": { "type": "boolean" },
+        "observationIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9._~-]{1,64}$" }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hash", "mediaType"],
+      "properties": {
+        "hash": { "$ref": "#/$defs/hash" },
+        "mediaType": { "type": "string", "pattern": "^[a-z0-9!#$&^_.+-]+/[a-z0-9!#$&^_.+-]+$", "maxLength": 127 },
+        "sizeBytes": { "type": "string", "pattern": "^(0|[1-9][0-9]*)$", "maxLength": 20 }
+      }
+    }
+  }
+}

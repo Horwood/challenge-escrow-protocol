@@ -4,6 +4,7 @@
 !.env.example
 node_modules/
 contracts/cache/
+cache/
 contracts/out/
 contracts/broadcast/
 contracts/.gas-snapshot
@@ -11,3 +12,9 @@ coverage/
 artifacts/
 *.log
 *-report*.json
+crytic-export/
+slither_results.json
+tools/medusa/corpus/
+tools/medusa/crytic-export/
+tools/medusa/slither_results.json
+__pycache__/

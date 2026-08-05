@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.condition-language/v1",
+  "title": "Challenge Escrow condition language v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "root"],
+  "properties": {
+    "schema": { "const": "challenge-escrow.condition-language/v1" },
+    "root": { "$ref": "#/$defs/node" }
+  },
+  "$defs": {
+    "node": {
+      "oneOf": [
+        { "$ref": "#/$defs/all" },
+        { "$ref": "#/$defs/any" },
+        { "$ref": "#/$defs/not" },
+        { "$ref": "#/$defs/comparison" },
+        { "$ref": "#/$defs/between" }
+      ]
+    },
+    "all": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "args"],
+      "properties": {
+        "op": { "const": "all" },
+        "args": { "type": "array", "minItems": 1, "maxItems": 32, "items": { "$ref": "#/$defs/node" } }
+      }
+    },
+    "any": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "args"],
+      "properties": {
+        "op": { "const": "any" },
+        "args": { "type": "array", "minItems": 1, "maxItems": 32, "items": { "$ref": "#/$defs/node" } }
+      }
+    },
+    "not": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "arg"],
+      "properties": {
+        "op": { "const": "not" },
+        "arg": { "$ref": "#/$defs/node" }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "left", "right"],
+      "properties": {
+        "op": { "enum": ["eq", "neq", "lt", "lte", "gt", "gte"] },
+        "left": { "$ref": "#/$defs/value" },
+        "right": { "$ref": "#/$defs/value" }
+      }
+    },
+    "between": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "value", "lower", "upper", "inclusive"],
+      "properties": {
+        "op": { "const": "between" },
+        "value": { "$ref": "#/$defs/value" },
+        "lower": { "$ref": "#/$defs/value" },
+        "upper": { "$ref": "#/$defs/value" },
+        "inclusive": { "type": "boolean" }
+      }
+    },
+    "value": {
+      "oneOf": [
+        { "$ref": "#/$defs/reference" },
+        { "$ref": "#/$defs/integer" },
+        { "$ref": "#/$defs/decimal" },
+        { "$ref": "#/$defs/text" },
+        { "$ref": "#/$defs/boolean" },
+        { "$ref": "#/$defs/timestamp" },
+        { "$ref": "#/$defs/hash" }
+      ]
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref"],
+      "properties": {
+        "ref": { "type": "string", "pattern": "^/observations/[A-Za-z0-9._~-]{1,64}/value$" }
+      }
+    },
+    "integer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "integer" },
+        "value": { "type": "string", "pattern": "^-?(0|[1-9][0-9]*)$", "maxLength": 78 }
+      }
+    },
+    "decimal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "decimal" },
+        "value": { "type": "string", "pattern": "^-?(0|[1-9][0-9]*)\\.[0-9]+$", "maxLength": 128 }
+      }
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "text" },
+        "value": { "type": "string", "maxLength": 4096 }
+      }
+    },
+    "boolean": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "boolean" },
+        "value": { "type": "boolean" }
+      }
+    },
+    "timestamp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "timestamp" },
+        "value": { "type": "string", "pattern": "^[0-9]{1,20}$" }
+      }
+    },
+    "hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "const": "hash" },
+        "value": { "type": "string", "pattern": "^0x[0-9a-fA-F]{64}$" }
+      }
+    }
+  }
+}

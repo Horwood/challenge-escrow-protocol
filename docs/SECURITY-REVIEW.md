@@ -1,6 +1,6 @@
 # Security review
 
-I completed this local research review on 2026-08-02. I am recording executed
+I completed this local research review on 2026-08-03. I am recording executed
 evidence here, not presenting an independent security audit.
 
 ## Scope
@@ -10,6 +10,8 @@ I reviewed:
 - Solidity contracts under `contracts/src`;
 - adversarial-token and lifecycle tests under `contracts/test`;
 - the dependency lock and package metadata;
+- independent state, arithmetic, portable-semantics, client, simulator, and
+  authority-failure artifacts under `tools/` and `spec/`;
 - secret, credential, dangerous-operation, and product-data exposure;
 - the claims made by the public documentation.
 
@@ -53,37 +55,57 @@ test.
 ## Assurance gaps I still carry
 
 - I have not received an independent third-party audit.
-- My core branch coverage remains materially lower than line coverage,
-  especially in the validation kernel; I still need more negative-path and
-  differential tests.
+- The branch baseline now has one uncovered production branch. I closed the
+  ordinary negative-path matrix, exercised the self-referential deployment
+  guards through a CREATE factory, and killed all 12 representative mutations
+  in isolated temporary copies; the remaining LCOV branch is a post-transfer
+  solvency guard that the arithmetic checker formally dominates under the exact
+  sender-delta preconditions.
 - My deployed runtime is 23,270 bytes, leaving 1,306 bytes below the EIP-170
-  limit with the pinned compiler and optimizer settings. I need to recheck this
-  margin after every code change.
-- I publish a conformance vector only for the commitment boundary. I still need
-  independent implementations for terms, evidence, and condition schemas.
+  limit with the pinned compiler and optimizer settings. `pnpm run size:check`
+  now fails automatically if a future build crosses that limit.
+- I publish one portable terms/evidence vector in addition to the commitment
+  vector. JavaScript and Python agree on it, but I still need a second
+  production implementation and a larger negative corpus.
 - I have not run live-chain, wallet, key-management, monitoring, or
-  incident-response tests.
+  incident-response tests; the reorganization observer and liveness lab are
+  local simulations.
 - I make no legal or regulatory clearance claim.
 
 ## Checks I ran
 
 - I built the release with the pinned Solidity compiler and kept formatting
   checks clean.
-- I passed forty-one tests with zero failures, including adversarial incoming
+- I passed fifty-two tests with zero failures, including adversarial incoming
   and outgoing token behavior, reentry attempts, lifecycle boundaries, and
   role-overlap regressions.
 - I ran thirteen invariant properties for 256 sequences and 32,768 calls per
   property. I covered solvency, conservation, terminal immutability, one-time
   claims, role exclusion, pause exits, permit replay, exact incoming deltas,
   and unexpected token balance changes.
+- I ran the independent JavaScript model over 10,000 sequences of 128 actions,
+  the CHC/Z3 arithmetic boundary checks, and the Medusa shadow harness with 40
+  tests and zero failures.
+- I checked the deployed bytecode size at 23,270 bytes against the 24,576-byte
+  EIP-170 limit, leaving 1,306 bytes of measured margin.
+- I ran twelve representative source mutations in isolated copies of the
+  contract tree. Every mutation was killed by the production test suite; no
+  mutation survived.
+- I checked the portable schemas, canonical bytes, domain-separated hashes, and
+  condition result in both JavaScript and Python; I also ran read-only client,
+  block-pinned inspection, field-level `ReleaseDeclared` and `ChallengeCreated`
+  reconciliation, duplicate/omitted/misaligned event handling, reorganization
+  replay, simulator, liveness sweep, failure-lab, and authority-policy
+  prototype checks.
 - I measured core line coverage at 86.36% for `ChallengeEscrow.sol`, 83.42% for
   `ChallengeEscrowKernel.sol`, and 100% for `ExactTokenDelta.sol`.
 - I found no confirmed exploitable finding after manually classifying Slither's
-  output. I classify the remaining warnings as guarded token callbacks,
-  deadline timestamps, deliberate low-level ERC-20 handling, assembly used for
-  exact return decoding and event emission, validation complexity, and an enum
-  comparison.
-- I ran 64 Semgrep security and secret-detection rules across 26 files with
+  output: two medium, fourteen low, and nine informational findings, with no
+  high-severity finding. I classify the remaining warnings as guarded token
+  callbacks, deadline timestamps, deliberate low-level ERC-20 handling,
+  assembly used for exact return decoding and event emission, validation
+  complexity, and an enum comparison.
+- I ran 139 Semgrep security and secret-detection rules across 52 files with
   zero findings. Gitleaks found zero secrets. My locked dependency audit found
   no known vulnerabilities at high severity or above.
 - I found no original product name, endpoint, address, local path, seed phrase,

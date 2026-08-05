@@ -44,6 +44,14 @@ I use that boundary when I write another implementation, a client verifier, or
 a formal model. I expect a compatible implementation to preserve byte order,
 domains, and namespace, not merely produce values that look similar.
 
+## Read-only integration and reorgs
+
+I keep the transport-neutral TypeScript reader in `tools/client/`. It loads
+immutable release metadata, nested challenge state, and entitlements without a
+signer. The reorganization-safe observer in `tools/client/observer.ts` keeps
+events useful for discovery while requiring direct state reconciliation before
+any financial interpretation.
+
 ## The shortest honest safety statement
 
 I have local evidence behind the code, but I have not received an independent

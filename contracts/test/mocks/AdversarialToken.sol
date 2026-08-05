@@ -8,6 +8,7 @@ contract AdversarialToken {
         REVERT_CALL,
         NO_RETURN,
         MALFORMED_RETURN,
+        RETURN_NON_ONE,
         UNDERCREDIT_RECIPIENT,
         OVERCREDIT_RECIPIENT,
         UNDERDEBIT_ESCROW,
@@ -97,6 +98,12 @@ contract AdversarialToken {
         require(approved >= amount, "ALLOWANCE");
         if (approved != type(uint256).max) allowance[from][msg.sender] = approved - amount;
         _move(from, to, amount, amount);
+        if (outgoingMode == OutgoingMode.RETURN_NON_ONE) {
+            assembly ("memory-safe") {
+                mstore(0, 2)
+                return(0, 32)
+            }
+        }
         return true;
     }
 
@@ -141,6 +148,12 @@ contract AdversarialToken {
             assembly ("memory-safe") {
                 mstore(0, 1)
                 return(31, 1)
+            }
+        }
+        if (mode == OutgoingMode.RETURN_NON_ONE) {
+            assembly ("memory-safe") {
+                mstore(0, 2)
+                return(0, 32)
             }
         }
         return true;

@@ -31,6 +31,7 @@ before treating anything here as deployable.
 | see why I ended up with this shape | [Research evolution](docs/EVOLUTION.md) |
 | review my assumptions, failures, and remaining gaps | [Threat model](docs/THREAT-MODEL.md) and [security review](docs/SECURITY-REVIEW.md) |
 | reproduce my commitments outside Solidity | [Public vectors](spec/vectors/commitments-v1.json) and [their verifier](tools/verify-vectors.mjs) |
+| inspect the portable terms and evidence boundary | [Portable semantics](docs/PORTABLE-SEMANTICS.md) and [conformance artifacts](spec/README.md) |
 | read or change my code | [Reading guide](docs/READING-GUIDE.md) and [contribution notes](CONTRIBUTING.md) |
 
 ## The whole idea
@@ -84,8 +85,9 @@ I care about the edge conditions as much as the happy path:
   properties rather than leaving them in prose.
 
 I record the local evidence in [the security review](docs/SECURITY-REVIEW.md):
-41 tests, 13 invariant properties, static analysis, dependency inspection,
-and secret scans. I also record what I still have not proved.
+52 tests, 13 invariant properties, a 12-for-12 mutation baseline, static
+analysis, dependency inspection, and secret scans. I also record what I still
+have not proved.
 
 ## Run my reference locally
 
@@ -103,7 +105,7 @@ pnpm audit:dependencies
 `pnpm check` verifies formatting, recomputes my public commitment boundary,
 builds with the pinned compiler, and runs the security profile. I include no
 deployment script, and the contract reports `TESTNET_NO_VALUE` as its only
-value mode.
+value mode. `pnpm run size:check` enforces the EIP-170 deployed-bytecode limit.
 
 </details>
 

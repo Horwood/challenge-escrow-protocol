@@ -53,6 +53,17 @@ back, replay, and reconcile after a reorganization. I treat the read model as a
 way to improve discovery and presentation, never as a source of financial
 rights or a replacement for direct contract state.
 
+## From open-ended evidence to a closed condition language
+
+I do not want a resolver's interpretation to become an undocumented program
+that different clients execute differently. I therefore fixed
+`challenge-escrow.condition-language/v1` to a small declarative tree with exact
+tagged values, bounded depth, bounded fan-out, and no network or clock access.
+I made integer and decimal comparisons rational, kept timestamps explicit, and
+made mixed types a validation error. A future operator or coercion rule gets a
+new language identifier and a new vector instead of silently changing old
+terms.
+
 ## Public extraction
 
 I removed interface code, social-network integration, deployment operations,
