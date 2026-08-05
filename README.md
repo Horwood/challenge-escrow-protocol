@@ -114,6 +114,12 @@ That gate runs the Solidity baseline, schema checks, JavaScript/Python/Rust
 conformance implementations, the twelve-case negative corpus, and the
 locked dependency audit.
 
+For a read-only Sepolia or Base Sepolia inspection, I use the safety boundary
+in [`tools/testnet/README.md`](tools/testnet/README.md). The local test suite
+proves that it rejects credentials, write RPC methods, unsafe URLs, wrong
+chains, and non-`TESTNET_NO_VALUE` release events before I give it any endpoint
+or address.
+
 `pnpm check` verifies formatting, recomputes my public commitment boundary,
 builds with the pinned compiler, and runs the security profile. I include no
 deployment script, and the contract reports `TESTNET_NO_VALUE` as its only

@@ -22,6 +22,11 @@ under `schemas/observer-v1.json`. It records the block-pinned head, finality
 labels, decoded event records, projected challenge states, and explicit
 conflict/incompleteness anomalies without granting any financial authority.
 
+The testnet boundary emits `challenge-escrow.testnet-preflight/v1` only after
+checking an allowlisted Sepolia or Base Sepolia chain, deployed bytecode, the
+`ReleaseDeclared` event, and the public release getters. The preflight has no
+write method or credential path.
+
 This remains a partial conformance package: it does not prove external source
 truth, live-chain finality, or every Solidity lifecycle path. The Rust verifier
 is deliberately a portable boundary implementation, not an on-chain parser.

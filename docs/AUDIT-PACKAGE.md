@@ -19,6 +19,7 @@ independent evidence beside it:
 | Independent EVM run | `tools/medusa/` | A shadow state machine fuzzed by a separate execution engine |
 | Public conformance | `spec/vectors/`, `tools/portable/`, and `rust/portable-verifier/` | Commitment bytes, canonical JSON, errors, and hashes outside the Solidity implementation |
 | Observer boundary | `tools/client/{observer,events,projector,rpc}.ts` and `spec/schemas/observer-v1.json` | Reorganization-safe logs, full event decoding, lifecycle projection, finality labels, and dual-RPC divergence signals |
+| Testnet safety boundary | `tools/testnet/read-only.mjs`, `tools/testnet/test.mjs`, and `spec/schemas/testnet-preflight-v1.json` | Allowlisted Sepolia/Base Sepolia read-only inspection with no credentials or transaction method |
 
 The JavaScript and Solidity harnesses intentionally do not import production
 state. They are useful only because they can disagree with it; I never count a
@@ -41,6 +42,7 @@ pnpm run portable:rust
 pnpm run portable:differential
 pnpm run client:check
 pnpm run schemas:check
+pnpm run testnet:check
 pnpm run simulator:test
 pnpm run liveness:sweep
 pnpm run failure:lab
@@ -86,6 +88,10 @@ I have the following local results for this revision:
   finality, and reports orphan or impossible events as explicit anomalies. The
   deep client test also covers agreeing, divergent, and unavailable RPC head
   comparisons.
+- The testnet preflight suite is memory-only and rejects unsafe URLs, unknown
+  secret-bearing fields, write RPC methods, wrong chains, and a nonzero
+  `ReleaseDeclared` value mode. Its optional real endpoint command performs
+  only `eth_chainId`, `eth_getCode`, `eth_call`, and `eth_getLogs`.
 - The branch baseline reports one uncovered production branch. I ran the 12
   representative mutation targets in isolated temporary copies: all 12 were
   killed and none survived. This is a measured local mutation baseline, not a

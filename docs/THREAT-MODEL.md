@@ -23,6 +23,7 @@ from the assumptions I leave with people, tokens, and the chain.
 | Arbiter to participants | Wrong or unavailable decision | I use an immutable role, evidence lineage, and arbitration timeout to `VOID` |
 | Pauser to participants | Interested party blocks progress | I separate the role and keep disputes and safe exits available during pause |
 | Events to indexer | Reorg, omission, duplication | I use ordered event identity, rollback and replay, and direct chain reconciliation |
+| RPC to testnet preflight | Wrong chain, credential leakage, write-method misuse, fake release tuple | I allowlist Sepolia/Base Sepolia, require HTTPS and an explicit deployment block, call only read methods, and reconcile `ReleaseDeclared` with immutable getters |
 
 ## Authority I deliberately omit
 

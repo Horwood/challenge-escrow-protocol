@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.testnet-preflight/v1",
+  "title": "Challenge Escrow testnet read-only preflight v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "status",
+    "network",
+    "chainId",
+    "deploymentBlock",
+    "escrowAddress",
+    "codeBytes",
+    "tokenCodeBytes",
+    "valueMode",
+    "release",
+    "checkedRpcMethods"
+  ],
+  "properties": {
+    "schema": { "const": "challenge-escrow.testnet-preflight/v1" },
+    "status": { "const": "ok" },
+    "network": { "enum": ["sepolia", "base-sepolia"] },
+    "chainId": { "$ref": "#/$defs/decimal" },
+    "deploymentBlock": { "$ref": "#/$defs/decimal" },
+    "escrowAddress": { "$ref": "#/$defs/address" },
+    "codeBytes": { "$ref": "#/$defs/positiveDecimal" },
+    "tokenCodeBytes": { "$ref": "#/$defs/positiveDecimal" },
+    "valueMode": { "const": "TESTNET_NO_VALUE" },
+    "release": { "$ref": "#/$defs/release" },
+    "checkedRpcMethods": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": { "enum": ["eth_chainId", "eth_getCode", "eth_call", "eth_getLogs"] }
+    }
+  },
+  "$defs": {
+    "decimal": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 78
+    },
+    "positiveDecimal": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$",
+      "maxLength": 78
+    },
+    "address": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{40}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^0x[0-9a-fA-F]{64}$"
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "releaseId",
+        "eventProtocolId",
+        "protocolVersion",
+        "challengeSchemaId",
+        "evidenceSchemaId",
+        "chainId",
+        "escrowContract",
+        "canonicalToken",
+        "tokenDecimals",
+        "resolver",
+        "arbiter",
+        "initialPaused"
+      ],
+      "properties": {
+        "releaseId": { "$ref": "#/$defs/hash" },
+        "eventProtocolId": { "const": "challenge-escrow-event/v1" },
+        "protocolVersion": { "const": "challenge-escrow-protocol/v1" },
+        "challengeSchemaId": { "const": "challenge-escrow.spec/v1" },
+        "evidenceSchemaId": { "const": "challenge-escrow.evidence/v1" },
+        "chainId": { "$ref": "#/$defs/decimal" },
+        "escrowContract": { "$ref": "#/$defs/address" },
+        "canonicalToken": { "$ref": "#/$defs/address" },
+        "tokenDecimals": { "type": "string", "pattern": "^(0|[1-9]|1[0-8])$" },
+        "resolver": { "$ref": "#/$defs/address" },
+        "arbiter": { "$ref": "#/$defs/address" },
+        "initialPaused": { "type": "boolean" }
+      }
+    }
+  }
+}

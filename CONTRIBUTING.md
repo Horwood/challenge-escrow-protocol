@@ -30,6 +30,8 @@ I run the full local check before I open a pull request:
 pnpm check
 pnpm run portable:rust
 pnpm run portable:differential
+pnpm run client:check
+pnpm run testnet:check
 pnpm audit:dependencies
 ```
 

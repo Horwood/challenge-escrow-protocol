@@ -69,6 +69,7 @@ results.push(run("portable", "pnpm", ["run", "portable:check"], 120_000));
 results.push(run("portable-rust", "pnpm", ["run", "portable:rust"], 180_000));
 results.push(run("portable-differential", "pnpm", ["run", "portable:differential"], 120_000));
 results.push(run("client", "pnpm", ["run", "client:check"], 120_000));
+results.push(run("testnet-preflight", "pnpm", ["run", "testnet:check"], 120_000));
 results.push(run("simulator", "pnpm", ["run", "simulator:test"], 120_000));
 results.push(run("liveness", "pnpm", ["run", "liveness:sweep"], 120_000));
 results.push(run("failure-lab", "pnpm", ["run", "failure:lab"], 120_000));

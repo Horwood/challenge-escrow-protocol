@@ -1,6 +1,6 @@
 # Security review
 
-I completed this local research review on 2026-08-03. I am recording executed
+I completed this local research review on 2026-08-05. I am recording executed
 evidence here, not presenting an independent security audit.
 
 ## Scope
@@ -71,7 +71,8 @@ test.
 - I have not run live-chain, wallet, key-management, monitoring, or
   incident-response tests; the reorganization observer, lifecycle projector,
   finality labels, and dual-RPC comparison are local simulations with injected
-  memory-only provider faults.
+  memory-only provider faults. The Sepolia/Base Sepolia preflight is also
+  memory-only in this revision; I have not supplied a live RPC URL or address.
 - I now run a five-property Halmos boundary harness against the production
   release surface and commitment libraries. It has zero counterexamples for
   its stated properties, while full lifecycle, arbitrary token, and live-chain
@@ -104,6 +105,12 @@ test.
   duplicate/omitted/misaligned event handling, reorganization replay, finality
   labels, dual-RPC divergence and outage handling, simulator, liveness sweep,
   failure-lab, and authority-policy prototype checks.
+- I ran the testnet safety suite with no endpoint or key. It rejects credential
+  URLs, query-bearing RPC URLs, unknown secret fields, write methods, wrong
+  chains, missing escrow/token bytecode, and non-`TESTNET_NO_VALUE` release
+  events. The
+  optional live preflight remains read-only and requires an explicit deployment
+  block, but it has not been run against a real chain.
 - I measured core line coverage at 86.36% for `ChallengeEscrow.sol`, 83.42% for
   `ChallengeEscrowKernel.sol`, and 100% for `ExactTokenDelta.sol`.
 - I found no confirmed exploitable finding after manually classifying Slither's
@@ -115,6 +122,10 @@ test.
 - I ran 139 Semgrep security and secret-detection rules across 52 files with
   zero findings. Gitleaks found zero secrets. My locked dependency audit found
   no known vulnerabilities at high severity or above.
+- The final reproducible audit manifest completed all 22 checks successfully,
+  including the new observer, Rust, and read-only testnet boundaries. Its
+  temporary logs remain outside the repository; I do not treat the manifest as
+  a third-party audit.
 - I found no original product name, endpoint, address, local path, seed phrase,
   mnemonic, or credential pattern in my public extraction.
 - I reproduced every fixed identifier and hash in the public commitment vector.

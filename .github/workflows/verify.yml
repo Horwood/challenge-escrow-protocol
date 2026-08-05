@@ -51,5 +51,8 @@ jobs:
       - name: Verify portable semantics in three implementations
         run: pnpm run portable:rust && pnpm run portable:differential
 
+      - name: Verify read-only testnet safety boundary
+        run: pnpm run testnet:check
+
       - name: Inspect dependencies
         run: pnpm audit --audit-level high
