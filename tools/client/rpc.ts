@@ -30,6 +30,9 @@ function sameBlock(left: BlockHeader | null, right: BlockHeader | null): boolean
 }
 
 async function snapshot(name: string, provider: RpcHeadProvider): Promise<RpcEndpointSnapshot> {
+  if (!provider.getBlockByTag) {
+    return { name, latest: null, safe: null, finalized: null, error: "safe and finalized block tags are unavailable" };
+  }
   try {
     const latestNumber = await provider.getBlockNumber();
     const [latest, safe, finalized] = await Promise.all([
@@ -37,7 +40,9 @@ async function snapshot(name: string, provider: RpcHeadProvider): Promise<RpcEnd
       provider.getBlockByTag?.("safe") ?? Promise.resolve(null),
       provider.getBlockByTag?.("finalized") ?? Promise.resolve(null),
     ]);
-    return { name, latest, safe, finalized, error: latest ? null : `latest block ${latestNumber} is unavailable` };
+    let error: string | null = latest ? null : `latest block ${latestNumber} is unavailable`;
+    if (!safe || !finalized) error ??= "safe and finalized block tags are unavailable";
+    return { name, latest, safe, finalized, error };
   } catch (error) {
     return { name, latest: null, safe: null, finalized: null, error: String(error) };
   }

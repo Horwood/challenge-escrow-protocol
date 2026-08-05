@@ -32,6 +32,7 @@ before treating anything here as deployable.
 | review my assumptions, failures, and remaining gaps | [Threat model](docs/THREAT-MODEL.md) and [security review](docs/SECURITY-REVIEW.md) |
 | reproduce my commitments outside Solidity | [Public vectors](spec/vectors/commitments-v1.json) and [their verifier](tools/verify-vectors.mjs) |
 | inspect the portable terms and evidence boundary | [Portable semantics](docs/PORTABLE-SEMANTICS.md), [error catalog](docs/PORTABLE-ERROR-CATALOG.md), and [conformance artifacts](spec/README.md) |
+| follow the current research depth cycle | [Depth cycle 2](docs/DEPTH-CYCLE-2.md) |
 | read or change my code | [Reading guide](docs/READING-GUIDE.md) and [contribution notes](CONTRIBUTING.md) |
 
 ## The whole idea

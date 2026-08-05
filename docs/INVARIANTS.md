@@ -141,28 +141,28 @@ are recorded in `docs/FORMAL-PROOF-LEDGER.md` and
 This closes the previous gap between a pure arithmetic shadow specification and
 the release's public hash surface. It does not turn the research release into
 an independent audit, and it leaves external token behavior, complete stateful
-sequences, event completeness, and live-chain conditions open for later
-branches.
+sequences, field-level event reconciliation, and live-chain conditions open for
+later branches.
 
-## Evidence still required for this ledger
+## Residual evidence gaps after the depth cycle
 
-I consider the first stage complete only after the following gaps have a named
-owner in the next stage:
+The following items remain explicitly open; the new research branches reduce
+their scope but do not turn them into audit claims:
 
-1. I need an independent executable model rather than a handler that mirrors
-   the contract's fields and assumptions.
-2. I need generated tests for the complete constructor overlap matrix, every
+1. I now have an independent executable model in `tools/model/`, but I still
+   need generated coverage for the complete constructor overlap matrix, every
    reason code, every resolution and void path, and all evidence parent links.
-3. I need lifecycle-event fixtures for every emitted field and ordering, while
-   the current `ReleaseDeclared` and `ChallengeCreated` fixtures plus the
-   read-only observer cover direct state reconciliation, omission, duplication,
-   anchoring, and local rollback.
-4. I need a formal status for the external-token boundary, where the model must
-   represent arbitrary callback behavior and exact balance changes without
+2. I added fixtures that ABI-decode every published lifecycle event in
+   `tools/client/observer.deep.test.ts`. A complete field-by-field comparison
+   of every emitted event against a live contract state snapshot, including
+   cross-transaction ordering, remains open.
+3. I still need a formal status for the external-token boundary. The model and
+   adversarial suite cover selected callback and exact-delta behaviors without
    claiming to prove arbitrary token correctness.
-5. I need to connect the proved arithmetic lemmas to a full contract-level
-   symbolic run, or record a counterexample for any production path that is
-   not covered by the shadow specification.
+4. I connected selected arithmetic and commitment lemmas to the production
+   release surface through Halmos, but a full lifecycle-level symbolic run and
+   live-chain finality conditions remain outside this release.
 
-I use this ledger as the input to the independent model. I do not treat a green
-Foundry run as permission to skip that model.
+I use this ledger as input to the independent model and observer. I do not
+treat a green Foundry, observer, or solver run as permission to skip the
+remaining human review.

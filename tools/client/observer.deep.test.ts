@@ -138,6 +138,8 @@ const divergent = await compareRpcHeads({ name: "rpc-a", provider: rpcProvider(h
 if (divergent.status !== "divergent" || divergent.divergenceAt !== "safe") throw new Error("RPC safe-head divergence was not labeled");
 const unavailable = await compareRpcHeads({ name: "rpc-a", provider: rpcProvider(headers[5], headers[4]) }, { name: "rpc-down", provider: { async getBlockNumber(): Promise<bigint> { throw new Error("connection refused"); }, async getBlockByNumber(): Promise<BlockHeader | null> { return null; } } });
 if (unavailable.status !== "unavailable") throw new Error("RPC outage was not labeled unavailable");
+const unsupportedFinality = await compareRpcHeads({ name: "rpc-a", provider: { async getBlockNumber(): Promise<bigint> { return headers[6].number; }, async getBlockByNumber(number: bigint): Promise<BlockHeader | null> { return headers.find((header) => header.number === number) ?? null; } } }, { name: "rpc-b", provider: rpcProvider(headers[5], headers[4]) });
+if (unsupportedFinality.status !== "unavailable") throw new Error("missing safe/finalized tags were treated as agreement");
 
 let unknownRejected = false;
 try {

@@ -20,6 +20,7 @@ independent evidence beside it:
 | Public conformance | `spec/vectors/`, `tools/portable/`, and `rust/portable-verifier/` | Commitment bytes, canonical JSON, errors, and hashes outside the Solidity implementation |
 | Observer boundary | `tools/client/{observer,events,projector,rpc}.ts` and `spec/schemas/observer-v1.json` | Reorganization-safe logs, full event decoding, lifecycle projection, finality labels, and dual-RPC divergence signals |
 | Testnet safety boundary | `tools/testnet/read-only.mjs`, `tools/testnet/test.mjs`, and `spec/schemas/testnet-preflight-v1.json` | Allowlisted Sepolia/Base Sepolia read-only inspection with no credentials or transaction method |
+| Cycle handoff | `docs/DEPTH-CYCLE-2.md` | Three-stage dependency map, lane gates, residual claims, and local handoff boundary |
 
 The JavaScript and Solidity harnesses intentionally do not import production
 state. They are useful only because they can disagree with it; I never count a
@@ -41,7 +42,6 @@ pnpm run portable:check
 pnpm run portable:rust
 pnpm run portable:differential
 pnpm run client:check
-pnpm run schemas:check
 pnpm run testnet:check
 pnpm run simulator:test
 pnpm run liveness:sweep
@@ -61,8 +61,9 @@ pnpm audit --audit-level high
 
 The single local command `pnpm run audit:baseline` executes this complete
 sequence, stores each full log in a temporary directory, and prints a JSON
-manifest with tool versions and exit codes. The five `check:lineN` commands are
-the smaller line-specific baselines I run after each three-stage branch.
+manifest with tool versions and exit codes. The cycle-specific gates and their
+three-stage dependencies are listed in `docs/DEPTH-CYCLE-2.md`; the older
+`check:lineN` commands remain as smaller compatibility baselines.
 
 ## Evidence from the current run
 
