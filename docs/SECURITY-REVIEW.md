@@ -301,8 +301,10 @@ fails the gate.
   above.
 - The supply-chain check binds six GitHub Action revisions, read-only workflow
   permissions, a script-free pnpm install, one integrity-locked Solidity
-  dependency, 16 checksummed Rust dependencies, and the release toolchain
-  markers. The CHC and Medusa runners also reject any solc core version other
+  dependency, one hash-locked Python verification dependency, 16 checksummed
+  Rust dependencies, and the release toolchain markers, including an isolated,
+  exact Python version. The CHC and Medusa runners also reject any solc core
+  version other
   than 0.8.36, and Medusa has a finite execution timeout. The complete audit
   additionally requires Z3 4.16.0, Medusa 1.5.1,
   Gitleaks 8.30.1, Semgrep 1.172.0, and Slither 0.11.6, while the formal runner

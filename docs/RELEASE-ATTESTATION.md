@@ -48,7 +48,7 @@ both runtime digests, and rebuilds the manifest hash.
 pnpm run release:check
 ```
 
-The current manifest covers seven production source files and 126 public
+The current manifest covers seven production source files and 128 public
 artifacts. Both implementations reproduce a 23,270-byte deployed runtime with
 Keccak-256
 `0x30d6efa6dfb6c41174980ad79a10bf05c1c85e28951e6e250e6783dd13c7b6b1`

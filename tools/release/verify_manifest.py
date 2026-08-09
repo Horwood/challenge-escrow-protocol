@@ -49,6 +49,8 @@ PUBLIC_EXACT = (
     "package.json",
     "pnpm-lock.yaml",
     "pnpm-workspace.yaml",
+    "requirements-ci.in",
+    "requirements-ci.lock",
     "rust-toolchain.toml",
     "spec/README.md",
 )

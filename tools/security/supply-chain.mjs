@@ -28,6 +28,13 @@ for (const { action, revision } of actionLines) {
 assert(/^permissions:\n  contents: read$/m.test(workflow), "workflow permissions are not read-only");
 assert(workflow.includes("persist-credentials: false"), "checkout credentials remain persisted");
 assert(workflow.includes("pnpm install --frozen-lockfile --ignore-scripts"), "CI dependency install is not locked and script-free");
+assert(
+  workflow.includes("uv pip install --require-hashes --requirement requirements-ci.lock"),
+  "Python verification dependency install is not locked and hash-checked",
+);
+assert(workflow.includes("python-version: 3.12.11"), "Python version is not exact");
+assert(workflow.includes("activate-environment: true"), "Python verification environment is not isolated");
+assert(workflow.includes("cache-dependency-glob: requirements-ci.lock"), "uv cache is not keyed by the Python lockfile");
 assert(!/pull_request_target|workflow_run|\$\{\{\s*secrets\./.test(workflow), "workflow exposes a high-risk trigger or secret context");
 assert(!/curl\s+[^\n|]*\|\s*(?:ba)?sh|wget\s+[^\n|]*\|\s*(?:ba)?sh/.test(workflow), "workflow pipes network content into a shell");
 for (const marker of [
@@ -107,6 +114,16 @@ assert(integrityValues.length === 1, "lockfile integrity inventory drifted");
 assert(integrityValues[0] === "sha512-Ly6SlsVJ3mj+b18W3R8gNufB7dTICT105fJhodGAGgyC2oqnBAhqSiNDJ8V8DLY05cCz81GLI0CU5vNYA1EC/w==", "OpenZeppelin lockfile integrity drifted");
 assert(!/\btarball:|git\+|https?:\/\//.test(lock), "lockfile contains a non-registry source override");
 
+const pythonInput = read("requirements-ci.in");
+assert(/^pycryptodome==3\.23\.0$/m.test(pythonInput), "Python verification dependency is not exact");
+assert(pythonInput.trim().split("\n").length === 1, "Python verification dependency inventory drifted");
+const pythonLock = read("requirements-ci.lock");
+assert(/^pycryptodome==3\.23\.0 \\/m.test(pythonLock), "Python lockfile version drifted");
+const pythonHashes = [...pythonLock.matchAll(/--hash=sha256:[0-9a-f]{64}/g)].map((match) => match[0]);
+assert(pythonHashes.length === 41, "Python lockfile hash inventory drifted");
+assert(new Set(pythonHashes).size === pythonHashes.length, "Python lockfile repeats package hashes");
+assert(!/git\+|https?:\/\//.test(pythonLock), "Python lockfile contains a non-registry source override");
+
 const rust = read("rust-toolchain.toml");
 assert(/^channel = "1\.97\.1"$/m.test(rust), "Rust toolchain is not exact");
 assert(/^components = \["rustfmt", "clippy"\]$/m.test(rust), "Rust verification components drifted");
@@ -143,9 +160,10 @@ console.log(JSON.stringify({
   status: "ok",
   pinnedActions: actionLines.length,
   lockedContractDependencies: integrityValues.length,
+  lockedPythonDependencies: 1,
   lockedRustDependencies: cargoChecksums,
   installScripts: "disabled",
   workflowPermissions: "contents-read",
-  toolchains: { node: "22.15.1", deno: "2.7.3", foundry: "1.7.1", rust: "1.97.1", uv: "0.9.29", solc: "0.8.36" },
+  toolchains: { node: "22.15.1", deno: "2.7.3", foundry: "1.7.1", rust: "1.97.1", python: "3.12.11", uv: "0.9.29", solc: "0.8.36" },
   analyzerMarkers: { halmos: "0.3.3", z3: "4.16.0", medusa: "1.5.1", gitleaks: "8.30.1", semgrep: "1.172.0", slither: "0.11.6" },
 }, null, 2));

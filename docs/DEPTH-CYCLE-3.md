@@ -137,7 +137,7 @@ exercise, or permission to use assets of value.
 | Portable observer receipt | JavaScript and Python agree on `4,692` canonical bytes and one receipt hash; `24/24` negative cases reject |
 | RPC quorum | `512` differential cases keep the TypeScript and receipt implementations aligned across two to six providers; fork, finality, dissent, and outage evidence remain explicit |
 | Authority policy | three roles, eight synthetic members, five incident decisions, strict-majority thresholds, an enforced announcement delay, and `19/19` negative policies reject |
-| Release attestation | JavaScript and Python agree over seven production sources, 126 public artifacts, a 23,270-byte runtime, six immutable groups with 24 substitutions, and a 140-entry ABI; a separate gate fixes all 43 public functions and 14 writable entry points; compiler metadata is matched back to every production source |
+| Release attestation | JavaScript and Python agree over seven production sources, 128 public artifacts, a 23,270-byte runtime, six immutable groups with 24 substitutions, and a 140-entry ABI; a separate gate fixes all 43 public functions and 14 writable entry points; compiler metadata is matched back to every production source |
 
 The first integrated depth gate exposed four ordinary integration defects: an
 overly strict receipt-head helper, the post-payment entitlement expectation in

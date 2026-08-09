@@ -1,6 +1,6 @@
 {
   "schema": "challenge-escrow.release-manifest/v1",
-  "manifestHash": "0xe2fbeff823c7ecc57fcd13e1a09e515f7da658c7e0ce7cbce1ad5e52fe107935",
+  "manifestHash": "0x910a00aa9a5984f7c03c9f0a9efbaaa38d7f9f921790709fec81ad28df022c56",
   "release": {
     "contract": "ChallengeEscrow",
     "protocolVersion": "challenge-escrow-protocol/v1",
@@ -325,8 +325,8 @@
     },
     {
       "path": ".github/workflows/verify.yml",
-      "bytes": "1755",
-      "sha256": "sha256:2b6ec48737140448c991536d4e7831bc30fb36e60a4ecac84e5856990fa29e20"
+      "bytes": "2021",
+      "sha256": "sha256:bc9a2afb5958a6e889a5b13fec055bd3a4245788d30f36e50ec67bb6dc27d2b6"
     },
     {
       "path": ".gitignore",
@@ -415,8 +415,8 @@
     },
     {
       "path": "docs/AUDIT-PACKAGE.md",
-      "bytes": "12314",
-      "sha256": "sha256:c292a19a9c80f9627de0db6287e4f505812882fbb242127c293d1d825c0035c0"
+      "bytes": "12372",
+      "sha256": "sha256:38266a58a582b2efd3efa92bfdc08936a9cdf9c4f64bffc0f2c47eb6c8f5691b"
     },
     {
       "path": "docs/AUTHORITY-POLICY.md",
@@ -431,7 +431,7 @@
     {
       "path": "docs/DEPTH-CYCLE-3.md",
       "bytes": "12692",
-      "sha256": "sha256:ec81712b06f1f667c3098e57d2a39a656a5b57f9669cac14d48aa52a16adcee0"
+      "sha256": "sha256:3f7031ef297ce48f51f38195cca7b2d0177f17cad11c3f1d46064b683c7c5be3"
     },
     {
       "path": "docs/EVOLUTION.md",
@@ -481,12 +481,12 @@
     {
       "path": "docs/RELEASE-ATTESTATION.md",
       "bytes": "4153",
-      "sha256": "sha256:2c3723b4db2915d6f0bbd8ed4c3b07cfb6024ada87e5364b26cf6a8a5c4d5766"
+      "sha256": "sha256:9daa5579a28402dc11ad0dd0e1fe0fbd47243d1ffbef5417b72ea74dbb849438"
     },
     {
       "path": "docs/SECURITY-REVIEW.md",
-      "bytes": "19347",
-      "sha256": "sha256:1c705fae6ff8e6d17b266ff89ab26bbaa7782b9268fc465becd3ab6bd918b0bc"
+      "bytes": "19444",
+      "sha256": "sha256:ef442c36a15809abbe9cf590908b6cb0f5dd75d0ce1a426e90254d5f57ccda90"
     },
     {
       "path": "docs/THREAT-MODEL.md",
@@ -512,6 +512,16 @@
       "path": "pnpm-workspace.yaml",
       "bytes": "24",
       "sha256": "sha256:d5de56d95e74c8663380e7ca4f8e9d59456e015a583b0159527b4aedafd0ded8"
+    },
+    {
+      "path": "requirements-ci.in",
+      "bytes": "21",
+      "sha256": "sha256:8af6d5cfebc5c65614d58aee1d40b734d61d9ce4741ef03bad97749a4aa24145"
+    },
+    {
+      "path": "requirements-ci.lock",
+      "bytes": "3693",
+      "sha256": "sha256:a4299771fc9aec0578dbb430eeb581d2f23e22dd21b3d328570c0b966c2fc743"
     },
     {
       "path": "rust-toolchain.toml",
@@ -825,8 +835,8 @@
     },
     {
       "path": "tools/release/manifest.mjs",
-      "bytes": "13808",
-      "sha256": "sha256:7c84a96a27111d9a3b1f67afd8205cbfcf026213f9f74b0d452757fb5a1b7249"
+      "bytes": "13858",
+      "sha256": "sha256:aa586909ef1106ee52416dede9a7aa7a8b0c73dc95ef66ef3a10bf0156f28307"
     },
     {
       "path": "tools/release/verify.mjs",
@@ -835,8 +845,8 @@
     },
     {
       "path": "tools/release/verify_manifest.py",
-      "bytes": "17481",
-      "sha256": "sha256:386500f0a8c53defbc83929a4611fc50fea2231e5079fb5350c9e718e26db7e7"
+      "bytes": "17535",
+      "sha256": "sha256:ffab72bf006375c0ccb925eb3822243ba1edbca04af09596cffa4df4ffcee5f9"
     },
     {
       "path": "tools/release/write.mjs",
@@ -880,8 +890,8 @@
     },
     {
       "path": "tools/security/supply-chain.mjs",
-      "bytes": "9050",
-      "sha256": "sha256:5d2706cae0686b82f8ea1dae826b30ac1fd970089e6b9fef4dcec7122fc831eb"
+      "bytes": "10377",
+      "sha256": "sha256:79f13e3b9920a30417f5d00dd59b2a2f9f6981f734e8a7ba531398c342477ef4"
     },
     {
       "path": "tools/simulator/README.md",
@@ -931,6 +941,6 @@
   ],
   "boundaries": {
     "productionSourcesSha256": "sha256:a8c46db76ce97de6911a26cd5964cf3bfc5077f504c8d8d5f92b2ff27642e8b6",
-    "publicArtifactsSha256": "sha256:5cc0db1655ae1d3f25e91deb5f68850312a22b8216c2a3077e69ca72df7287ed"
+    "publicArtifactsSha256": "sha256:d5455efcf29f16bf746a7e41daffd468a9bc869b95a25dd46a1d83ae388007d1"
   }
 }

@@ -122,7 +122,7 @@ The current revision produced these local results:
   The fingerprints are synthetic; no key ceremony or live signer is
   represented.
 - JavaScript and Python independently rebuild the same release manifest over
-  seven production sources and 126 public artifacts. They agree on the
+  seven production sources and 128 public artifacts. They agree on the
   23,270-byte runtime, its SHA-256 and Keccak-256, and the canonical 140-entry
   ABI digest. They also match every current production source to the Keccak
   recorded in compiler metadata and preserve six public immutable groups with
@@ -159,8 +159,9 @@ The current revision produced these local results:
   vulnerability at high severity or above.
 - The supply-chain gate checks six immutable GitHub Action revisions,
   read-only workflow permissions, script-free pnpm installation, one
-  integrity-locked Solidity dependency, 16 checksummed Rust dependencies, and
-  the exact Node, Deno, Foundry, Rust, uv, and Solidity release markers. It also
+  integrity-locked Solidity dependency, one hash-locked Python verification
+  dependency, 16 checksummed Rust dependencies, and the exact Node, Deno,
+  Foundry, Rust, Python, uv, and Solidity release markers. It also
   fixes the top-level Halmos version and the expected Z3, Medusa, Gitleaks,
   Semgrep, and Slither versions; the complete audit fails if any installed
   analyzer reports another version. For Z3, the gate compares the exact semantic version
