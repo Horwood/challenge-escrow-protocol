@@ -1,16 +1,16 @@
 # Audit package
 
-I keep this package as a reproducible handoff for a reviewer. It collects the
+This package is a reproducible handoff for a reviewer. It collects the
 protocol checks, the independent state models, the attack matrix, the static
-analysis boundaries, and the exact places where I still need human review. It
+analysis boundaries, and the exact places that still need human review. It
 is evidence for this research release, not an audit certificate.
 
 ## Scope
 
-I treat `contracts/src` as the production boundary. I keep the following
-independent evidence beside it:
+`contracts/src` is the production boundary. The following independent evidence
+sits beside it:
 
-| Layer | Artifact | What I use it for |
+| Layer | Artifact | Purpose |
 | --- | --- | --- |
 | Specification | `docs/INVARIANTS.md` | State vocabulary, transition ledger, and property status |
 | Differential model | `tools/model/` | A pure JavaScript execution model with deterministic and random traces |
@@ -25,12 +25,12 @@ independent evidence beside it:
 | Cycle handoff | `docs/DEPTH-CYCLE-3.md` | Five dependent three-stage lanes, final integrated gate, and residual claims |
 
 The JavaScript and Solidity harnesses intentionally do not import production
-state. They are useful only because they can disagree with it; I never count a
-shadow-model pass as a production-bytecode proof.
+state. They are useful only because they can disagree with it; a shadow-model
+pass never counts as a production-bytecode proof.
 
 ## Reproduction order
 
-From the repository root, I run:
+From the repository root:
 
 ```text
 pnpm install --frozen-lockfile --ignore-scripts
@@ -76,7 +76,7 @@ three-stage dependencies are listed in `docs/DEPTH-CYCLE-3.md`; the older
 
 ## Evidence from the current run
 
-I have the following local results for this revision:
+The current revision produced these local results:
 
 - The production Foundry suite passes 52 tests and 13 stateful invariant
   properties under the security profile.
@@ -143,8 +143,8 @@ I have the following local results for this revision:
   only `eth_chainId`, `eth_blockNumber`, `eth_getBlockByNumber`, `eth_getCode`,
   `eth_call`, and `eth_getLogs`, with code and getter reads pinned to the
   recorded block hash.
-- The branch baseline reports one uncovered production branch. I ran the 12
-  representative mutation targets in isolated temporary copies: all 12 were
+- The branch baseline reports one uncovered production branch. The 12
+  representative mutation targets ran in isolated temporary copies: all 12 were
   killed, none survived, and none failed to compile or time out. The coverage
   gate accepts only the source-matched dominated solvency branch and fails on a
   new production gap. This is a measured local mutation baseline, not a proof
@@ -163,7 +163,7 @@ I have the following local results for this revision:
   the exact Node, Deno, Foundry, Rust, uv, and Solidity release markers. It also
   fixes the top-level Halmos version and the expected Z3, Medusa, Gitleaks,
   Semgrep, and Slither versions; the complete audit fails if any installed
-  analyzer reports another version. For Z3 I compare the exact semantic version
+  analyzer reports another version. For Z3, the gate compares the exact semantic version
   while ignoring only its standard 32-bit or 64-bit platform suffix.
 - Slither reports no high-severity finding, while still reporting two medium,
   fourteen low, and nine informational findings. One medium warning is the
@@ -181,26 +181,26 @@ I have the following local results for this revision:
   logs remain in a temporary local directory and are not part of the public
   release.
 
-The exact counts can change with compiler, analyzer, or corpus versions, so I
-always attach the JSON manifest and tool versions to a review request.
+Exact counts can change with compiler, analyzer, or corpus versions. Every
+review request should therefore include the JSON manifest and tool versions.
 
 ## Counterexample handling
 
-At this revision I have no failing counterexample to publish. If a property or
-mutation fails, I preserve the smallest replayable call sequence, the exact
+This revision has no failing counterexample to publish. If a property or
+mutation fails, preserve the smallest replayable call sequence, the exact
 tool versions, the relevant source hash, and the pre/post state snapshot under
-`tools/security/counterexamples/`. I redact addresses, credentials, and funded
+`tools/security/counterexamples/`. Redact addresses, credentials, and funded
 test material before sharing anything outside the local review.
 
-I do not treat a green fuzzing run as evidence that a mutation is killed: every
-mutation in the attack matrix needs a named test or a minimized counterexample.
+A green fuzzing run is not evidence that a mutation is killed. Every mutation
+in the attack matrix needs a named test or a minimized counterexample.
 
 ## Human review still required
 
-I still need an independent audit of the production bytecode, independent
-review of every lifecycle and projector relation, live-chain reorganization
-and censorship testing, deployment and key-management review, and a fresh
-runtime-size check after every code change. I also still need a hermetic audit
-image if I want byte-for-byte provenance for analyzer binaries, the Z3 package,
-Halmos transitive distributions, and the remote Semgrep registry profiles.
+The remaining work includes an independent audit of the production bytecode,
+independent review of every lifecycle and projector relation, live-chain
+reorganization and censorship testing, deployment and key-management review,
+and a fresh runtime-size check after every code change. Byte-for-byte provenance
+for analyzer binaries, the Z3 package, Halmos transitive distributions, and the
+remote Semgrep registry profiles would also require a hermetic audit image.
 This package does not authorize real-value deployment.

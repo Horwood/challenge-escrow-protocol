@@ -1,7 +1,7 @@
 # Portable verifier error catalog
 
-I keep parser and evaluator failures machine-readable so an indexer can stop
-before it turns malformed evidence into a resolution decision. The Rust
+Parser and evaluator failures remain machine-readable so an indexer can stop
+before turning malformed evidence into a resolution decision. The Rust
 implementation is the reference catalog for this research stage; JavaScript
 and Python retain human-readable messages while applying the same rejection
 boundaries.

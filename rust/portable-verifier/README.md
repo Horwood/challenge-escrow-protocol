@@ -1,7 +1,7 @@
 # Portable verifier
 
-I keep this crate as an independent implementation of the portable terms,
-condition, and evidence boundary. It deliberately does not import Solidity
+This crate is an independent implementation of the portable terms, condition,
+and evidence boundary. It deliberately does not import Solidity
 code and it does not contact a chain or fetch a source.
 
 ## Commands

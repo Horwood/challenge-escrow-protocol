@@ -1,6 +1,6 @@
 # Invariant and state-transition ledger
 
-I use this ledger as the first executable map of the protocol. It records what
+This ledger is the first executable map of the protocol. It records what
 the current Solidity release promises, which transition owns each promise, and
 where the existing tests still provide only partial evidence. It describes the
 research release at `challenge-escrow-protocol/v1`; it does not create a new
@@ -8,17 +8,17 @@ protocol namespace.
 
 ## Current evidence
 
-I currently have 52 tests, 13 stateful invariant properties, exact token-delta
-tests for incoming and outgoing transfers, and a public commitment vector. The
+Current evidence includes 52 tests, 13 stateful invariant properties, exact
+token-delta tests for incoming and outgoing transfers, and a public commitment vector. The
 stateful handler compares the main lifecycle, liability, entitlement, pause,
 and role fields. It does not yet compare every reason code, resolution path,
 parent evidence link, event field, or constructor boundary in every generated
-sequence. I mark those properties as partial below instead of treating the
-handler's successful run as complete proof.
+sequence. Those properties remain marked partial below; a successful handler run
+is not complete proof.
 
 ## State vocabulary
 
-| State | How I enter it | Financial obligation created | Allowed lifecycle exits |
+| State | Entry | Financial obligation created | Allowed lifecycle exits |
 | --- | --- | --- | --- |
 | `OPEN` | `createAndFund` pulls one exact stake | One challenger principal remains outstanding | `ACTIVE`, `CANCELLED`, `EXPIRED` |
 | `ACTIVE` | `accept` pulls the second exact stake | Two principals remain outstanding | `PROPOSED`, `VOID` by proposal timeout |
@@ -85,7 +85,7 @@ do not change lifecycle state and therefore sit outside this transition graph.
 
 ## Financial equations
 
-For every challenge `c`, I use these equations as the model's accounting
+For every challenge `c`, these equations define the model's accounting
 boundary:
 
 ```text
@@ -109,19 +109,19 @@ RESOLVED_A or RESOLVED_B
   => winner entitlement = 2 * stake
 ```
 
-An unsolicited token surplus is outside these equations. I keep it visible in
-the balance but do not make it claimable or treat it as protocol liability.
+An unsolicited token surplus is outside these equations. It remains visible in
+the balance but is neither claimable nor treated as protocol liability.
 
 ## Third-stage formal boundary check
 
-I added a solver-facing arithmetic specification in
+The solver-facing arithmetic specification is in
 `tools/formal/ChallengeEscrowArithmeticProperties.sol`. With the production
 preconditions encoded as assumptions, the Solidity SMTChecker proved the
 stake-times-two payout bound, the proposal dispute-deadline addition, the
 arbitration-deadline addition, and the post-transfer solvency guard's logical
 dominance under exact sender-delta semantics safe for `uint256` and `uint64`
-arithmetic. I run the check through `pnpm run formal:check` with Z3 and fail
-the command when the solver is missing or returns an unproved target.
+arithmetic. `pnpm run formal:check` runs the check with Z3 and fails when the
+solver is missing or returns an unproved target.
 
 This is a bounded proof of the arithmetic lemmas, not a claim that the solver
 has verified the entire stateful contract. The independent model and the
@@ -131,7 +131,7 @@ production implementation.
 
 ## Contract-coupled symbolic boundary
 
-I added `tools/formal/src/ChallengeEscrowHalmosProperties.sol`, which calls the
+`tools/formal/src/ChallengeEscrowHalmosProperties.sol` calls the
 production `ChallengeEscrow` accessors and the exact production commitment
 libraries under symbolic inputs. `pnpm run formal:contract` proves ten
 properties with Halmos 0.3.3 and Z3; the machine-readable ledger and its scope
@@ -149,20 +149,19 @@ later branches.
 The following items remain explicitly open; the new research branches reduce
 their scope but do not turn them into audit claims:
 
-1. I now have an independent executable model in `tools/model/`, but I still
-   need generated coverage for the complete constructor overlap matrix, every
+1. An independent executable model now exists in `tools/model/`, but generated
+   coverage is still needed for the complete constructor overlap matrix, every
    reason code, every resolution and void path, and all evidence parent links.
-2. I added fixtures that ABI-decode every published lifecycle event in
+2. Fixtures ABI-decode every published lifecycle event in
    `tools/client/observer.deep.test.ts`. A complete field-by-field comparison
    of every emitted event against a live contract state snapshot, including
    cross-transaction ordering, remains open.
-3. I still need a formal status for the external-token boundary. The model and
+3. The external-token boundary still needs a formal status. The model and
    adversarial suite cover selected callback and exact-delta behaviors without
    claiming to prove arbitrary token correctness.
-4. I connected selected arithmetic and commitment lemmas to the production
-   release surface through Halmos, but a full lifecycle-level symbolic run and
+4. Selected arithmetic and commitment lemmas connect to the production release
+   surface through Halmos, but a full lifecycle-level symbolic run and
    live-chain finality conditions remain outside this release.
 
-I use this ledger as input to the independent model and observer. I do not
-treat a green Foundry, observer, or solver run as permission to skip the
-remaining human review.
+The independent model and observer use this ledger as input. A green Foundry,
+observer, or solver run is not permission to skip the remaining human review.

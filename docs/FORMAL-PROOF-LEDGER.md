@@ -1,14 +1,13 @@
 # Formal proof ledger
 
-I use this ledger to separate the properties I prove symbolically from the
-properties I only test or model. The harness calls the production release
+This ledger separates properties proved symbolically from properties supported
+only by tests or models. The harness calls the production release
 surface and the production commitment libraries, while the arithmetic checks
-keep their assumptions visible. I do not describe this as a whole-contract
-proof.
+keep their assumptions visible. This is not a whole-contract proof.
 
 ## Reproduction
 
-From the repository root, I run:
+From the repository root:
 
 ```text
 pnpm run formal:check
@@ -16,10 +15,11 @@ pnpm run formal:contract
 ```
 
 The arithmetic runner rejects a `solc` core version other than
-`0.8.36+commit.8a079791`. The contract-coupled run uses `Halmos 0.3.3` with `Z3`, a 30-second assertion
-limit, a 10-millisecond branch limit, and bounded build and solver processes. The command writes its machine-
-readable result to an ignored path and fails unless all ten properties finish
-with zero counterexamples. The separate CHC run is bound to all seven
+`0.8.36+commit.8a079791`. The contract-coupled run uses `Halmos 0.3.3` with
+`Z3`, a 30-second assertion limit, a 10-millisecond branch limit, and bounded
+build and solver processes. The command writes its machine-readable result to
+an ignored path and fails unless all ten properties finish with zero
+counterexamples. The separate CHC run is bound to all seven
 assertions in its arithmetic lemma source, so removing an assertion cannot
 silently reduce the reported proof set.
 
@@ -41,7 +41,8 @@ silently reduce the reported proof set.
 The current configuration contains ten properties. `F-09` is stateful but
 bounded: it uses one exact-behavior token, one caller, one challenge, a
 nonzero `uint96` stake, nonce, and terms hash, a timestamp with seven seconds
-of headroom, and the open cancellation path. It does not generalize to arbitrary ERC-20 behavior,
+of headroom, and the open cancellation path. It does not generalize to arbitrary
+ERC-20 behavior,
 acceptance signatures, proposals, disputes, winner claims, concurrent
 challenges, every event field, or live-chain behavior. Those remain separate
 test, model, observer, and review obligations.

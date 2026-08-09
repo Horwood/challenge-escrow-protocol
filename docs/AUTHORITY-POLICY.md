@@ -1,7 +1,7 @@
 # Authority and key-policy boundary
 
 The contract has three narrow operational roles: resolver, arbiter, and
-pauser. I use `challenge-escrow.authority-policy/v1` to describe how those
+pauser. `challenge-escrow.authority-policy/v1` describes how those
 roles would be operated without publishing keys, endpoints, wallet addresses,
 or vendor-specific infrastructure.
 
@@ -10,7 +10,7 @@ multisig deployment, or evidence that any live operators follow it.
 
 ## Policy rules
 
-I require every policy to carry:
+Every policy must carry:
 
 - a stable policy ID and a domain-separated policy hash;
 - a monotonic epoch, predecessor hash, announcement time, and bounded
@@ -48,7 +48,7 @@ The policy never grants an operator a withdrawal, payout-redirection, upgrade,
 or rescue path. Losing operational availability can delay an authority action,
 but it cannot create a new financial power.
 
-I also gate the compiled contract surface separately from this declaration:
+The compiled contract surface has a separate gate:
 
 ```sh
 pnpm run authority-surface:check
@@ -76,8 +76,8 @@ The current reference policy has three roles, eight synthetic controller
 fingerprints, and five derived incident decisions. The verifier accepts its
 hash and rejects all 19 negative policies with their declared codes.
 
-I regenerate the golden policy hash and incident matrix only when the format
-or reference policy changes:
+Regenerate the golden policy hash and incident matrix only when the format or
+reference policy changes:
 
 ```sh
 pnpm run authority:vector

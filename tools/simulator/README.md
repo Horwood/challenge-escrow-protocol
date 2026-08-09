@@ -1,6 +1,6 @@
 # Local scenario simulator
 
-I use the simulator to replay a named protocol path without a wallet, RPC
+The simulator replays a named protocol path without a wallet, RPC
 endpoint, token, or transaction. Each JSON scenario is a sequence of model
 actions with expected states or rejection codes. The runner emits a compact
 state trace after every action, so a failed boundary or a changed entitlement

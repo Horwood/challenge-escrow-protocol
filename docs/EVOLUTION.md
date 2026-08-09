@@ -1,72 +1,72 @@
 # Research evolution
 
-I am keeping the decisions that survived implementation and adversarial
-testing. I treat this as my design history, not as a production-readiness
-claim.
+This note keeps the decisions that survived implementation and adversarial
+testing. It is design history, not a production-readiness claim.
 
 ## From a document hash to a composite commitment
 
-I started by treating one hash of a terms document as the challenge identity. I
-found that insufficient once I was also passing execution fields such as
-wallets, chain, release, asset, stake, and deadlines to the contract. I now hash
-those typed fields independently, hash the canonical terms bytes independently,
-and combine both under an ordered domain. That makes disagreement at either
-boundary visible without putting full documents on-chain.
+The first design treated one hash of a terms document as the challenge identity.
+That became insufficient once execution fields such as wallets, chain, release,
+asset, stake, and deadlines also entered the contract. The current design hashes
+those typed fields independently, hashes the canonical terms bytes
+independently, and combines both under an ordered domain. Disagreement at either
+boundary becomes visible without putting full documents on-chain.
 
 ## From market-specific rules to a closed condition language
 
-I tested rules tied to one price feed or event source and found that they made
-the financial kernel depend on a particular product. I kept the contract
-category-neutral instead: I treat terms and evidence as committed artifacts,
-while resolver and arbiter roles interpret a deliberately limited off-chain
-condition language. I require a new namespace whenever I add a condition kind,
-so old commitments do not silently change meaning.
+Rules tied to one price feed or event source made the financial kernel depend on
+a particular product. The contract remains category-neutral instead: terms and
+evidence are committed artifacts, while resolver and arbiter roles interpret a
+deliberately limited off-chain condition language. Every new condition kind
+requires a new namespace, so old commitments cannot silently change meaning.
 
 ## Evidence lineage and correction windows
 
-I make every result proposal commit to evidence, and I require a dispute to
-reference that proposal evidence while adding its own challenge evidence. I let
-arbitration begin only after the source-correction cutoff. These links do not
+Every result proposal commits to evidence. A dispute references that proposal
+evidence while adding its own challenge evidence, and arbitration begins only
+after the source-correction cutoff. These links do not
 prove truth or availability, but they stop later parties from silently changing
 which artifacts a decision refers to.
 
 ## Failure becomes a financial outcome
 
-I do not want authority silence, missing evidence, or unresolved disagreement to
-trap funds indefinitely. I therefore make proposal and arbitration deadlines
-end in a permissionless `VOID`, which creates one refund entitlement per
-participant. I let an emergency pause block new exposure while leaving
-disputes, timeouts, claims, and refunds available.
+Authority silence, missing evidence, or unresolved disagreement must not trap
+funds indefinitely. Proposal and arbitration deadlines therefore end in a
+permissionless `VOID`, which creates one refund entitlement per participant. An
+emergency pause blocks new exposure while leaving disputes, timeouts, claims,
+and refunds available.
 
 ## Exact token accounting
 
-I do not trust an ERC-20 return value by itself. Fee-on-transfer, rebasing,
-malformed, callback-capable, or deliberately deceptive tokens can all break
-accounting. I check exact sender, recipient, and escrow balance deltas around
-every transfer and reject any mismatch. That narrows the supported asset set by
-design and keeps accounting failures atomic.
+An ERC-20 return value is not sufficient evidence of a correct transfer.
+Fee-on-transfer, rebasing, malformed, callback-capable, or deliberately
+deceptive tokens can all break accounting. Exact sender, recipient, and escrow
+balance deltas are checked around every transfer; any mismatch is rejected. This
+narrows the supported asset set by design and keeps accounting failures atomic.
 
 ## Events as a rebuildable read model
 
-I emit deterministic identities and committed hashes so an indexer can roll
-back, replay, and reconcile after a reorganization. I treat the read model as a
-way to improve discovery and presentation, never as a source of financial
-rights or a replacement for direct contract state.
+Deterministic identities and committed hashes let an indexer roll back, replay,
+and reconcile after a reorganization. The read model improves discovery and
+presentation; it never creates financial rights or replaces direct contract
+state.
 
 ## From open-ended evidence to a closed condition language
 
-I do not want a resolver's interpretation to become an undocumented program
-that different clients execute differently. I therefore fixed
-`challenge-escrow.condition-language/v1` to a small declarative tree with exact
-tagged values, bounded depth, bounded fan-out, and no network or clock access.
-I made integer and decimal comparisons rational, kept timestamps explicit, and
-made mixed types a validation error. A future operator or coercion rule gets a
+The resolver's interpretation must not become an undocumented program that
+different clients execute differently.
+`challenge-escrow.condition-language/v1` is therefore fixed to a small
+declarative tree with exact tagged values, bounded depth, bounded fan-out, and no
+network or clock access.
+Integer and decimal comparisons are rational, timestamps stay explicit, and
+mixed types are a validation error. A future operator or coercion rule gets a
 new language identifier and a new vector instead of silently changing old
 terms.
 
 ## Public extraction
 
-I removed interface code, social-network integration, deployment operations,
-infrastructure addresses, private history, and user data. I kept the protocol
-kernel, tests, public semantics, threat model, and conformance boundary so I can
-have the work reviewed independently of the product that motivated it.
+The public extraction removes interface code, social-network integration,
+deployment operations, infrastructure addresses, private history, and user
+data. It keeps the protocol kernel, tests, public semantics, threat model, and
+conformance boundary so the work can be reviewed independently of the product
+that motivated it.

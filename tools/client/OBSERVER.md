@@ -1,6 +1,6 @@
 # Reorganization-safe observer
 
-I keep the observer separate from financial authorization. It stores only
+The observer remains separate from financial authorization. It stores only
 canonical logs anchored to block hashes, walks back to a common ancestor when a
 head changes, removes logs from the orphaned branch, and reloads the new range.
 It ignores provider-supplied `removed` logs and rejects a log whose block hash
@@ -11,8 +11,8 @@ callers share the same in-flight synchronization instead of racing an older
 head against a newer one. Headers and logs are built in a temporary snapshot,
 the head is read again after log loading, and accepted state changes only if
 the whole range still anchors to one consecutive chain.
-I bound the block span, reorganization depth, number of logs per sync, retained
-headers, total retained logs, topic count, and event-data size. A caller can
+The implementation bounds the block span, reorganization depth, number of logs
+per sync, retained headers, total retained logs, topic count, and event-data size. A caller can
 tune those limits, but cannot disable them with a zero or unbounded value.
 
 `reconcile()` freezes the current logs and head together, reads direct state,

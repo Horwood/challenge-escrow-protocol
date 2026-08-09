@@ -1,17 +1,17 @@
 # Adversarial attack matrix
 
-I use this matrix to spend testing time on reachable security boundaries, not
-on a headline coverage number. It is a working security artifact for the
+This matrix directs testing time toward reachable security boundaries, not a
+headline coverage number. It is a working security artifact for the
 research release; it is not an audit report and it does not claim that an
 uncovered branch is exploitable.
 
 ## Baseline
 
-I generated the baseline with `pnpm run security:baseline`, which runs the
+The baseline comes from `pnpm run security:baseline`, which runs the
 existing Foundry suite and parses its LCOV branch report. The current release
 has one production branch without a hit in that report:
 
-| Area | Uncovered branches | Why I keep it in scope |
+| Area | Uncovered branches | Why it remains in scope |
 | --- | ---: | --- |
 | Constructor role and token boundaries | 0 | Self-referential role and token addresses are exercised through a CREATE factory |
 | Creation identity, commitment, and funding | 0 | Commitment, identity, and funding boundaries are exercised |
@@ -27,12 +27,12 @@ has one production branch without a hit in that report:
 | State access and accounting | 1 | The post-transfer insolvency guard is formally dominated by exact-delta and solvency preconditions, but remains unhit in LCOV |
 | Token return and balance-delta boundaries | 0 | False, empty, malformed, non-one, and delta-mismatch returns are exercised |
 
-The line and function reports are materially higher than branch coverage, so I
-do not use them as a substitute for this matrix.
+The line and function reports are materially higher than branch coverage and do
+not substitute for this matrix.
 
 ## Attack families
 
-| ID | Attack I try to make possible | Primary oracle | Priority |
+| ID | Attack target | Primary oracle | Priority |
 | --- | --- | --- | --- |
 | `A-01` | Reuse one instance nonce or one challenge identity after a failed or successful create | Challenge existence, nonce map, and liability snapshot | P0 |
 | `A-02` | Fund with a mismatched chain, release, token, decimals, stake, or supplied specification hash | Exact custom error and unchanged state | P0 |
@@ -57,7 +57,7 @@ do not use them as a substitute for this matrix.
 
 ## Mutation baseline
 
-I keep these mutations as explicit kill targets and run them with
+These mutations are explicit kill targets, executed with
 `pnpm run security:mutation`. The runner copies the contract tree into a fresh
 temporary directory, applies one source mutation, runs the production Foundry
 suite, records the exit status, and removes the copy. The current baseline is
@@ -87,13 +87,13 @@ comparisons, inline assembly, validation complexity, enum comparison, and a
 medium `reentrancy-no-eth` finding around the token callback. The enum
 comparison is separately reported as medium `incorrect-equality`; it selects
 the opposite side from the two-value `Side` enum and is not a balance or
-authorization equality. I classify the callback as a guarded observation
+authorization equality. The callback remains classified as a guarded observation
 surface rather than a cleared finding: every state-changing entry point is
 protected by `nonReentrant`, and the adversarial token suite checks that a
-callback cannot re-enter it. I pin Slither 0.11.6, both reviewed medium finding
-IDs, the complete severity-count inventory, and a SHA-256 digest over all 25
-normalized findings. Any changed finding fails the audit. I still keep both
-medium findings in the matrix for independent review.
+callback cannot re-enter it. The gate pins Slither 0.11.6, both reviewed medium
+finding IDs, the complete severity-count inventory, and a SHA-256 digest over all 25
+normalized findings. Any changed finding fails the audit. Both medium findings
+remain in the matrix for independent review.
 
 The matrix is intentionally stricter than the current tests. A green test run
 means that the tested behavior held; it does not mean that the remaining

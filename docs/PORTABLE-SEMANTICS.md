@@ -1,13 +1,13 @@
 # Portable semantics
 
-I keep terms and evidence outside the contract so another implementation can
+Terms and evidence remain outside the contract so another implementation can
 reconstruct the same meaning without importing Solidity types. The contract
 stores their hashes and enforces their lifecycle links; it does not fetch a
 document, execute a condition, or decide whether a source is truthful.
 
 ## Versioned envelopes
 
-I use three explicit identifiers:
+The boundary uses three explicit identifiers:
 
 | Identifier | Role |
 | --- | --- |
@@ -22,18 +22,18 @@ new identifier and a new conformance vector.
 
 ## Canonical bytes and domains
 
-Before hashing, I serialize a document as deterministic UTF-8 JSON:
+Before hashing, a document is serialized as deterministic UTF-8 JSON:
 
-1. I reject duplicate object keys, non-finite values, unpaired Unicode
+1. Reject duplicate object keys, non-finite values, unpaired Unicode
    surrogates, and numbers that are not explicitly represented by a schema
    value type.
-2. I normalize strings to Unicode NFC, sort object keys by their Unicode code
+2. Normalize strings to Unicode NFC, sort object keys by their Unicode code
    points, preserve array order, and emit no insignificant whitespace.
-3. I represent integers, decimals, timestamps, reason codes, byte lengths, and
+3. Represent integers, decimals, timestamps, reason codes, byte lengths, and
    hashes as tagged or explicitly bounded strings. This keeps JavaScript,
    Python, and Solidity clients from silently choosing different numeric
    precision.
-4. I cap recursive condition depth at 32, expression fan-out at 32, and each
+4. Cap recursive condition depth at 32, expression fan-out at 32, and each
    envelope's observation and artifact counts at 64. A verifier must reject
    work that exceeds those limits before evaluating it.
 
@@ -73,16 +73,16 @@ arbitration envelope carries the dispute evidence hash. The contract checks the
 parent hash supplied to its transition, while the envelope makes the same link
 portable to indexers and independent clients.
 
-I store artifact hashes and media types, not credentials or an authority to
-download a source. Retrieval, availability, and truth remain explicit external
-assumptions. An indexer must reconcile evidence hashes with direct contract
+Evidence stores artifact hashes and media types, not credentials or an
+authority to download a source. Retrieval, availability, and truth remain
+explicit external assumptions. An indexer must reconcile evidence hashes with direct contract
 state after a reorganization instead of granting rights from an event alone.
 
 ## Security posture
 
 The schemas are intentionally closed-world: unknown fields, unknown operators,
 unknown outcomes, invalid reason ranges, malformed hashes, excessive depth, and
-unbounded arrays are rejected. I now maintain a third implementation in
+unbounded arrays are rejected. A third implementation lives in
 `rust/portable-verifier/`, with a pinned Rust toolchain, a locked dependency
 graph, an explicit error catalog, and a twelve-case negative corpus. The
 JavaScript, Python, and Rust implementations must produce identical canonical

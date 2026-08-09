@@ -1,6 +1,6 @@
 # Read-only client kit
 
-I keep this TypeScript kit deliberately transport-neutral. An integrator gives
+This TypeScript kit is deliberately transport-neutral. An integrator gives
 it an object with one `readContract` method, and the kit only calls public view
 functions: it never accepts a signer, creates a transaction, estimates gas, or
 handles a private key.
@@ -16,7 +16,7 @@ address, a challenge liability larger than the release aggregate, or a decoded
 entitlement set that does not conserve deposits. `inspectChallenge` requires an
 explicit `uint64` `blockTag` and passes it to every call, so a compound read
 cannot silently drift with `latest`. A numeric tag alone is not a hash
-anchor; when reorganization resistance matters, I run the inspection through
+anchor; when reorganization resistance matters, run the inspection through
 the observer reconciliation callback and require its final header recheck.
 The supplied transport adapter remains a trust boundary: it must honor the
 requested block tag. The client also caps release strings and the entitlement
@@ -25,7 +25,7 @@ cannot turn one inspection into an unbounded local traversal.
 
 `test.ts` uses a memory-only provider and asserts that the inspector makes
 read-only calls, decodes the nested structs, and preserves the accounting
-equation. I run the complete boundary with Deno 2.7.3 through:
+equation. Run the complete boundary with Deno 2.7.3 through:
 
 ```sh
 pnpm run client:check

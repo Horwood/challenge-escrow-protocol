@@ -1,7 +1,7 @@
 # Reproducible release attestation
 
-I use `challenge-escrow.release-manifest/v1` to make the reviewed research
-boundary explicit. The manifest is deterministic: it contains no timestamp,
+`challenge-escrow.release-manifest/v1` makes the reviewed research boundary
+explicit. The manifest is deterministic: it contains no timestamp,
 Git branch, workstation path, RPC endpoint, signer, or deployment address.
 
 ## What the manifest binds
@@ -63,8 +63,8 @@ address. The same preflight binds code and getter calls to a canonical block
 hash, anchors the release event to its header, and fails if the snapshot header
 changes before the report is complete.
 
-When a reviewed release boundary changes, I first rebuild the contract and
-then regenerate the checked-in manifest:
+When a reviewed release boundary changes, first rebuild the contract and then
+regenerate the checked-in manifest:
 
 ```sh
 pnpm run release:write

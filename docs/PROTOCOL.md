@@ -2,24 +2,22 @@
 
 ## Purpose
 
-I let two participant wallets lock the same amount of one configured ERC-20
-asset against immutable execution fields and a hash of retrievable terms. I let
-a resolver propose `A`, `B`, or `VOID`; I let either participant dispute; I let
-an independent arbiter decide a disputed outcome. I let missing proposals or
-arbitration end in permissionless `VOID`, and I make every terminal financial
-exit pull-based.
+Two participant wallets lock the same amount of one configured ERC-20 asset
+against immutable execution fields and a hash of retrievable terms. A resolver
+can propose `A`, `B`, or `VOID`; either participant can dispute; an independent
+arbiter decides a disputed outcome. Missing proposals or arbitration end in
+permissionless `VOID`, and every terminal financial exit is pull-based.
 
 ## Trust statement
 
-I keep the backend non-custodial, but I do not call the protocol trustless. I
-let the resolver and arbiter interpret evidence, and I give the pauser control
-of an incident flag. I make those roles immutable and mutually distinct, exclude
-them from financial participation, and give them no way to withdraw escrowed
-assets.
+The protocol is non-custodial, but it is not trustless. The resolver
+and arbiter interpret evidence, and the pauser controls an incident flag. Those
+roles are immutable and mutually distinct, excluded from financial
+participation, and unable to withdraw escrowed assets.
 
 ## Commitments
 
-I bind:
+The protocol binds:
 
 1. a typed execution commitment containing chain, release, wallets, asset,
    stake, deadlines, and protocol namespace;
@@ -28,15 +26,15 @@ I bind:
 4. a domain-separated challenge identifier;
 5. a wallet-bound EIP-712 acceptance permit.
 
-I use hashes to authenticate exact bytes. I do not claim that they prove
-availability, truth, completeness, or the correct interpretation of evidence.
+Hashes authenticate exact bytes. They do not prove availability, truth,
+completeness, or the correct interpretation of evidence.
 
 ## Financial invariants
 
-I require the following properties:
+The financial boundary requires:
 
 - both deposits equal the configured stake exactly;
-- I accept one immutable asset and charge no fee;
+- one immutable asset and no fee;
 - an open cancellation or expiry refunds one stake to the challenger;
 - `VOID` refunds one stake to each participant;
 - `A` or `B` creates one entitlement for twice the stake;
@@ -49,18 +47,18 @@ I require the following properties:
 
 ## Resolution paths
 
-I let the resolver propose only after observation and before the proposal
-deadline. I let participants dispute before the dispute deadline using evidence
-that links to the proposal evidence hash. I start arbitration no earlier than
-the source-correction cutoff and end it at a deterministic deadline. I let any
-caller void an unproposed active challenge or an unarbitrated dispute after its
+The resolver can propose only after observation and before the proposal
+deadline. Participants can dispute before the dispute deadline using evidence
+linked to the proposal evidence hash. Arbitration starts no earlier than the
+source-correction cutoff and ends at a deterministic deadline. Any caller can
+void an unproposed active challenge or an unarbitrated dispute after its
 deadline.
 
 ## Versioning
 
-I publish the research namespace as `challenge-escrow-protocol/v1`. I keep
-contract releases direct and non-upgradeable. I require a new namespace and new
-conformance vectors for every semantic or cryptographic change. The portable
+The research namespace is `challenge-escrow-protocol/v1`. Contract releases are
+direct and non-upgradeable. Every semantic or cryptographic change requires a
+new namespace and new conformance vectors. The portable
 terms, evidence, and condition envelopes use their own versioned identifiers;
 their canonical bytes and domain-separated hashes are documented in
 [portable semantics](PORTABLE-SEMANTICS.md).

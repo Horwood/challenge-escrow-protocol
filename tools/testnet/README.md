@@ -1,11 +1,11 @@
 # Read-only testnet preflight
 
-I keep the Sepolia and Base Sepolia check deliberately narrower than a deploy
-script. It accepts an explicit network, RPC URL, escrow address, and exact deployment
-block, then calls only `eth_chainId`, `eth_blockNumber`,
-`eth_getBlockByNumber`, `eth_getCode`, `eth_call`, and `eth_getLogs`. I bind
+The Sepolia and Base Sepolia check is deliberately narrower than a deploy
+script. It accepts an explicit network, RPC URL, escrow address, and exact
+deployment block, then calls only `eth_chainId`, `eth_blockNumber`,
+`eth_getBlockByNumber`, `eth_getCode`, `eth_call`, and `eth_getLogs`. It binds
 code and getter reads to the snapshot block hash with the canonical-block
-selector, anchor the release log to its block header, and read the snapshot
+selector, anchors the release log to its block header, and reads the snapshot
 header again at the end. It never accepts a signer, a private key, a mnemonic,
 a value, or a transaction method.
 
@@ -23,20 +23,20 @@ The report records `snapshotBlock`, `snapshotBlockHash`, and
 `snapshotParentHash`. If the numbered block changes while the inspection is in
 progress, the run fails instead of combining data from both branches.
 
-I also compare the live runtime with the reviewed release after normalizing
-only the compiler-declared immutable slots. I preserve the six immutable groups,
-require all repeated substitutions inside each group to agree, and compare
-their 32-byte words with the public getters. A byte change outside those slots,
-an inconsistent role substitution, or a getter that presents another value
-fails the preflight.
+The preflight also compares the live runtime with the reviewed release after
+normalizing only the compiler-declared immutable slots. It preserves the six
+immutable groups, requires all repeated substitutions inside each group to
+agree, and compares their 32-byte words with the public getters. A byte change
+outside those slots, an inconsistent role substitution, or a getter that
+presents another value fails the preflight.
 
-I run the memory-only safety suite with:
+Run the memory-only safety suite with:
 
 ```sh
 pnpm run testnet:check
 ```
 
-I run a real read-only preflight only after supplying all four inputs explicitly
+Run a real read-only preflight only after supplying all four inputs explicitly
 in the shell. The command has no deployment or transaction path:
 
 ```sh
@@ -54,6 +54,6 @@ tuple at the recorded `snapshotBlock`; it is not proof of endpoint independence,
 compiler provenance, deployment approval, liveness, DNS resolution to a public
 network, or an audit.
 
-I require the root path because hosted RPC services often encode project
+The root path is required because hosted RPC services often encode project
 credentials in a URL path. This safety boundary therefore works only with a
 credential-free root endpoint; it intentionally rejects keyed provider URLs.

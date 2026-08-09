@@ -1,6 +1,6 @@
 {
   "schema": "challenge-escrow.release-manifest/v1",
-  "manifestHash": "0xf1687ebad58146bf443703aea44e355735a978a543476c500dfc21c372802651",
+  "manifestHash": "0xbd3d33f86a0ddd1bdda1af3104bb48eaabe2f82a9d3ff53ed6ca6fb0eedb8b80",
   "release": {
     "contract": "ChallengeEscrow",
     "protocolVersion": "challenge-escrow-protocol/v1",
@@ -341,12 +341,12 @@
     {
       "path": "CITATION.cff",
       "bytes": "544",
-      "sha256": "sha256:3c897efa05af02d45f6dd0ae13b1e9908a5e37d6107e20952965bde747c35953"
+      "sha256": "sha256:733563738397c96930c4297359057c3e7f3e51f3dd44883bb965ddd40b8a9370"
     },
     {
       "path": "CONTRIBUTING.md",
-      "bytes": "1665",
-      "sha256": "sha256:fbf0e4ed31b3f9aa0aa5e33e02b4d2d8d3a63740f2afcaaabeecf4892a53f6b2"
+      "bytes": "1630",
+      "sha256": "sha256:43269e5b4c9ec8ec48eabbbb8bc459e8a03d37834a5c94dbb3fb08af3db27e0d"
     },
     {
       "path": "LICENSE",
@@ -355,18 +355,18 @@
     },
     {
       "path": "NOTICE.md",
-      "bytes": "438",
-      "sha256": "sha256:708afa5a365536d52f6bbc04c08e33e375f844cc65ae56649a46a7f8acbeb7e8"
+      "bytes": "461",
+      "sha256": "sha256:d8bab102088a9ecf310a977c411bb3d53346f441fb23a10eb616fc571e6838e2"
     },
     {
       "path": "README.md",
-      "bytes": "9369",
-      "sha256": "sha256:984017a92a5fa17a783407478f643193b83596dff12e7949a1d36f0ead8ccc55"
+      "bytes": "9305",
+      "sha256": "sha256:5abdef98e6b4a4291503c1285edbe4064b25fef0d1018fc74c336d535eeaa785"
     },
     {
       "path": "SECURITY.md",
-      "bytes": "1993",
-      "sha256": "sha256:fdb78877504a0d0f9e9162bbe4be46d0d6a78f7f0fe566511863be8e1b42eca0"
+      "bytes": "1872",
+      "sha256": "sha256:447c6a35881ccb59231f3e96f30b4c496ad73ccb3904fb82b86d1b680eaa091f"
     },
     {
       "path": "contracts/foundry.toml",
@@ -410,98 +410,98 @@
     },
     {
       "path": "docs/ATTACK-MATRIX.md",
-      "bytes": "8579",
-      "sha256": "sha256:ac3445cede8b815878fdb5787f903754fe53757707f5a9b6e874f2ed5087d535"
+      "bytes": "8537",
+      "sha256": "sha256:e504be2e5892f9f3db6531f39185934d85170a9d1a683cddd671e7d1edb2b5ec"
     },
     {
       "path": "docs/AUDIT-PACKAGE.md",
-      "bytes": "12360",
-      "sha256": "sha256:699f1aff0792138e7953b754206c3c26a68d895b7962bd6a40dfd30f8dfb3d88"
+      "bytes": "12314",
+      "sha256": "sha256:c292a19a9c80f9627de0db6287e4f505812882fbb242127c293d1d825c0035c0"
     },
     {
       "path": "docs/AUTHORITY-POLICY.md",
-      "bytes": "4517",
-      "sha256": "sha256:e7612caa2b99ba1f921ea1469a3c4ac5d712b35ed13b113cb839bd6aa8a605c1"
+      "bytes": "4474",
+      "sha256": "sha256:c3581f7be604e3cd48a2797659a2d1aee720d1d4a311d52272cc8c9c1d26d992"
     },
     {
       "path": "docs/DEPTH-CYCLE-2.md",
-      "bytes": "3989",
-      "sha256": "sha256:c8f6768f046727c7282452d149ef3d55a71b36487838fe258c8a4de75789a4c2"
+      "bytes": "3982",
+      "sha256": "sha256:e3e6f39a4bda5df822e2f475bee79dac1d4dd353b7440a1110d8c54bdc09c43e"
     },
     {
       "path": "docs/DEPTH-CYCLE-3.md",
-      "bytes": "12713",
-      "sha256": "sha256:f64d31afe3fdc312537d9cf6eadd689cb4ddb23e141c2baa889733bd6d1bba3f"
+      "bytes": "12692",
+      "sha256": "sha256:ec81712b06f1f667c3098e57d2a39a656a5b57f9669cac14d48aa52a16adcee0"
     },
     {
       "path": "docs/EVOLUTION.md",
-      "bytes": "3595",
-      "sha256": "sha256:80ce2d59aa679f4104d12567a1b0eba7a9cbff430660b1ac54a3f9875a2bd17f"
+      "bytes": "3501",
+      "sha256": "sha256:c7ae9ac9e7b7e3750f28cbc45478ef38dc524a097012afafad9735c0de962942"
     },
     {
       "path": "docs/FORMAL-PROOF-LEDGER.md",
-      "bytes": "3780",
-      "sha256": "sha256:ce10dc1b28e972eb2c4373f2ebc7c699ab17350c27f0d339430d2f9ea50ce795"
+      "bytes": "3754",
+      "sha256": "sha256:bb4c67d0917fca0dec2535d1888caa4bc9e83cbd03ba616ec222fa3dc152d047"
     },
     {
       "path": "docs/INVARIANTS.md",
-      "bytes": "13941",
-      "sha256": "sha256:3028770451dd94201c18461c292d03071257b68d498be0a9341efebe177561a8"
+      "bytes": "13842",
+      "sha256": "sha256:41e9c14e507da4dde9ab435b20d46ccba55cf525f887cc961006d60e7213c634"
     },
     {
       "path": "docs/LIVENESS.md",
-      "bytes": "3050",
-      "sha256": "sha256:05321794b8d596e98a4e792bd2201c38b2776b49742c185ffdffba08a05ebe86"
+      "bytes": "3046",
+      "sha256": "sha256:2f64e84e9f9967bab45cd366d1518e506a51e7c2a321be8ed93c438b8964355c"
     },
     {
       "path": "docs/OBSERVER-RECEIPTS.md",
-      "bytes": "4591",
-      "sha256": "sha256:78fdea760e3690013ca6e24d8e6f071b7892da28248420f1a44a0ef5a013a74f"
+      "bytes": "4603",
+      "sha256": "sha256:10c46a0f83edf9bb62297b6313c3a6cc87e64b647a64c61d177de41dd527abad"
     },
     {
       "path": "docs/PORTABLE-ERROR-CATALOG.md",
-      "bytes": "3404",
-      "sha256": "sha256:78625a042c46af5203727505dea9fa7a2be01c1f1f9713af7f8d21a7606fb6ef"
+      "bytes": "3403",
+      "sha256": "sha256:09d609fc1a2ca6464dbc6c7c40cf85b7e4ce54b6e7c328fcdaf50058a3003ca5"
     },
     {
       "path": "docs/PORTABLE-SEMANTICS.md",
-      "bytes": "4981",
-      "sha256": "sha256:540f2e41bbefa4db961e283fa0e2fa028c72fa5640fedbb0974b9828dddb2c81"
+      "bytes": "4986",
+      "sha256": "sha256:7acb724abe70e68de201b421097ef8f32a4dc0ac5fb355f1d916661b6603a326"
     },
     {
       "path": "docs/PROTOCOL.md",
-      "bytes": "2838",
-      "sha256": "sha256:1c4f1629497e1ce326b5cac03c61ffbca671b5c76c4c81a0a6404e7da693def4"
+      "bytes": "2701",
+      "sha256": "sha256:0d018a95374ce30c6260f89f2b79e70c230088fb9872f574621c237c658aa82a"
     },
     {
       "path": "docs/READING-GUIDE.md",
-      "bytes": "3484",
-      "sha256": "sha256:73f72b41d1b9c690c5a247280cf2cb3bb1b4a36ad08a5f2329c52974f592d3ea"
+      "bytes": "3288",
+      "sha256": "sha256:07c0c19fc52b3594d99f1433e5679dd93ff91ec553f37d8f0d4239e0ea882062"
     },
     {
       "path": "docs/RELEASE-ATTESTATION.md",
-      "bytes": "4163",
-      "sha256": "sha256:ed477dc400647559fa699b222437d9018293d0162b3955df089a00dde97100da"
+      "bytes": "4153",
+      "sha256": "sha256:2c3723b4db2915d6f0bbd8ed4c3b07cfb6024ada87e5364b26cf6a8a5c4d5766"
     },
     {
       "path": "docs/SECURITY-REVIEW.md",
-      "bytes": "19353",
-      "sha256": "sha256:681629c9d9dc0cc7df71033116ae1d5071b60df1b3f394d90394d6fb2b63c045"
+      "bytes": "19347",
+      "sha256": "sha256:1c705fae6ff8e6d17b266ff89ab26bbaa7782b9268fc465becd3ab6bd918b0bc"
     },
     {
       "path": "docs/THREAT-MODEL.md",
-      "bytes": "5745",
-      "sha256": "sha256:ec164a2b7a6def51e7b1a65888cadaf81b7983dce19f6ad200ac23eddececcb6"
+      "bytes": "5275",
+      "sha256": "sha256:7d24baaf6fa5fcab665989147a98ef23998efc3406c7c75953899028a2bf15ea"
     },
     {
       "path": "docs/assets/cover.svg",
-      "bytes": "2427",
-      "sha256": "sha256:a2c4b82c1d804e3183ef825c125f132d834a9172c3c7fcf72645d11906b3f635"
+      "bytes": "2430",
+      "sha256": "sha256:6c2e4b1fbdac4d1744cee9014aab5fd7789a2659b344b5451b0f5383a6ffb05a"
     },
     {
       "path": "package.json",
-      "bytes": "4970",
-      "sha256": "sha256:8f097fad878db1c2677fe76008d059d4ad73782f5cb4891da7725ff4e4b47b05"
+      "bytes": "4987",
+      "sha256": "sha256:d3667d18227295c74f3d45913f1a00384862afcda03c45be81f21d956208adbf"
     },
     {
       "path": "pnpm-lock.yaml",
@@ -530,8 +530,8 @@
     },
     {
       "path": "rust/portable-verifier/README.md",
-      "bytes": "1204",
-      "sha256": "sha256:c64381833c70c137caf57e9e5e9394e3e0bf44dabd39ab7010deebfcab5938f2"
+      "bytes": "1197",
+      "sha256": "sha256:daec88ebe39d537a48dc6371064e6b1f80fcc2ac810486b85b120de79a6254b6"
     },
     {
       "path": "rust/portable-verifier/src/lib.rs",
@@ -545,8 +545,8 @@
     },
     {
       "path": "spec/README.md",
-      "bytes": "3397",
-      "sha256": "sha256:97bab870d984d50ed73a059c2f7a1447569cb4922758ff78209e653d569fdd80"
+      "bytes": "3374",
+      "sha256": "sha256:691ae3f01ccbc717c7fa7128e4a15d9ffa374e61b05db257308c81bcfa9f8a2e"
     },
     {
       "path": "spec/schemas/authority-policy-v1.json",
@@ -625,13 +625,13 @@
     },
     {
       "path": "tools/client/OBSERVER.md",
-      "bytes": "4584",
-      "sha256": "sha256:ffbfe8a647c03013921a908b4e6fe4e29c7e56e6d004c9bc7b2c923690c9e8c1"
+      "bytes": "4603",
+      "sha256": "sha256:de0de33d7b62d05a0f13d5d06ca950f62e35a9ee91aad4a1fdc9e2f027185024"
     },
     {
       "path": "tools/client/README.md",
-      "bytes": "3123",
-      "sha256": "sha256:75ced1e244083dd15acc8d95ad777aea5ea8f8173aa2becd480ca1fb734051c0"
+      "bytes": "3115",
+      "sha256": "sha256:5c90d5301c3ae71f5de8387770abb7f8baabd6775daba4eeda7c13c5f58f6a58"
     },
     {
       "path": "tools/client/events.ts",
@@ -885,8 +885,8 @@
     },
     {
       "path": "tools/simulator/README.md",
-      "bytes": "699",
-      "sha256": "sha256:7e12c2a0f1cfc78b8f012adea773caf4cbae9d2684205a18a23dd9f17f415373"
+      "bytes": "691",
+      "sha256": "sha256:a6ba8cd14db6ba670d99c00ad4d314c63c6397212c6124a5ca0199f2957fb0d2"
     },
     {
       "path": "tools/simulator/run.mjs",
@@ -910,8 +910,8 @@
     },
     {
       "path": "tools/testnet/README.md",
-      "bytes": "2770",
-      "sha256": "sha256:9a54eaa581f5ae55d5c1338bdbe2d74f9db9155dbe03291991f126cb1150d769"
+      "bytes": "2785",
+      "sha256": "sha256:18edc0214a7ac013706d073f9166134809bbd3fb1d150b8b613ce0d63daf7ccc"
     },
     {
       "path": "tools/testnet/read-only.mjs",
@@ -931,6 +931,6 @@
   ],
   "boundaries": {
     "productionSourcesSha256": "sha256:a8c46db76ce97de6911a26cd5964cf3bfc5077f504c8d8d5f92b2ff27642e8b6",
-    "publicArtifactsSha256": "sha256:8831bff9141f45322b48f3353b79fa61389785bed9d7d4d69ceec2b928e8085c"
+    "publicArtifactsSha256": "sha256:44abd9ccbb9664c395720422a451abcf13cb90b643691e759480ddcc724dbf08"
   }
 }

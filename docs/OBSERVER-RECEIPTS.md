@@ -1,11 +1,11 @@
 # Portable observer receipts
 
-I use `challenge-escrow.observer-receipt/v1` as a small, closed receipt over an
+`challenge-escrow.observer-receipt/v1` is a small, closed receipt over an
 observer run. It does not claim that an RPC provider is honest or that an
 off-chain fact is true. It records exactly which release, chain head, provider
 quorum, projected state, logs, and anomalies produced an observation.
 
-## What I bind
+## Bound data
 
 Every receipt binds five boundaries:
 
@@ -21,11 +21,11 @@ Every receipt binds five boundaries:
 
 Provider IDs use a short hostname-free vocabulary. Error fields accept only a
 closed list of endpoint-free states, so an uppercase credential cannot pass as
-a harmless error code. I sort provider IDs before building the receipt, reject
-duplicates, constrain every block number to the observer's `uint64` boundary,
-and include `parentHash` in the agreement key. Two providers
-reporting the same height and block hash but a different parent therefore do
-not count as agreement.
+a harmless error code. Provider IDs are sorted before building the receipt,
+duplicates are rejected, every block number is constrained to the observer's
+`uint64` boundary, and `parentHash` is included in the agreement key. Two
+providers reporting the same height and block hash but a different parent
+therefore do not count as agreement.
 
 Both implementations recompute the release ID from the chain ID and escrow
 address using the production domain and packed encoding. A well-formed but
@@ -33,10 +33,10 @@ unrelated `releaseId` is therefore rejected before the receipt is hashed.
 
 ## Quorum semantics
 
-I compare `latest`, `safe`, and `finalized` independently. A tag is `agree`
+`latest`, `safe`, and `finalized` are compared independently. A tag is `agree`
 only when exactly one block group reaches the declared threshold. Multiple
 qualifying groups are `conflicted`; insufficient available support is
-`unavailable`. I preserve dissent and outages even when a threshold is met.
+`unavailable`. Dissent and outages remain visible even when a threshold is met.
 
 A receipt may label its selected head `latest`, `safe`, `finalized`, or
 `unknown`. Any concrete finality label must reproduce an agreed quorum head.
@@ -48,8 +48,8 @@ stale heads.
 
 The receipt verifies an exact parent link when two reported tags are adjacent.
 When they are separated by more than one block, it can verify only height
-ordering because the intervening headers are not in the receipt. I do not call
-that a proof that `finalized` is an ancestor of `safe` or `latest`.
+ordering because the intervening headers are not in the receipt. That is not a
+proof that `finalized` is an ancestor of `safe` or `latest`.
 
 ## Reproduction boundary
 
@@ -79,7 +79,7 @@ The current vector reproduces to 4,692 canonical bytes and receipt hash
 in both implementations. All 24 negative cases reject with their declared
 codes.
 
-I generate the checked-in golden output only when the receipt format itself
+Regenerate the checked-in golden output only when the receipt format itself
 changes:
 
 ```sh

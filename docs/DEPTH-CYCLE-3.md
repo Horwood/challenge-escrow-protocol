@@ -1,16 +1,16 @@
 # Depth cycle 3
 
-I use this cycle to connect five assurance boundaries that are still separate in
-the current research release. The cycle starts with contract state, carries the
+This cycle connects five assurance boundaries that were still separate in the
+previous research release. It starts with contract state, carries the
 result through portable observer evidence and RPC agreement, makes authority
 assumptions machine-readable, and closes with a reproducible release
 attestation.
 
-I implement the stages in order and defer test execution until the complete
-cycle is wired. This keeps intermediate fixtures and interfaces free to change
-without turning every iteration into a compatibility exercise. The final gate
-runs the complete existing audit plus the new cycle checks once the five lanes
-are integrated.
+The stages were implemented in order, with test execution deferred until the
+complete cycle was wired. This kept intermediate fixtures and interfaces free
+to change without turning every iteration into a compatibility exercise. The
+final gate runs the complete existing audit plus the new cycle checks after all
+five lanes are integrated.
 
 ```mermaid
 flowchart LR
@@ -21,15 +21,15 @@ flowchart LR
     R1["5. Release attestation\nsource and artifact digests"] --> R2["independent manifest\nverification"] --> R3["single final gate\nand residual-gap handoff"]
 ```
 
-## Lane 1 — stateful formal boundary
+## Lane 1: stateful formal boundary
 
-1. I extend the contract-coupled Halmos harness across the production challenge
+1. Extend the contract-coupled Halmos harness across the production challenge
    identifier, entitlement identifier, acceptance-permit type hash, and permit
    digest surfaces.
-2. I add a bounded stateful property using an exact-behavior token: a valid
+2. Add a bounded stateful property using an exact-behavior token: a valid
    challenge moves from `OPEN` to `CANCELLED`, creates one refund entitlement,
    pays it once, and returns both challenge and aggregate liability to zero.
-3. I update the machine ledger and the human proof ledger with the exact
+3. Update the machine ledger and the human proof ledger with the exact
    preconditions, tool bounds, proved statements, and lifecycle properties that
    remain outside the proof.
 
@@ -37,15 +37,15 @@ Exit evidence: the production release surface is called directly, the stateful
 property has no shadow-contract implementation, and every new proof has a
 stable ledger ID.
 
-## Lane 2 — portable observer receipts
+## Lane 2: portable observer receipts
 
-1. I define `challenge-escrow.observer-receipt/v1` as a closed envelope for a
+1. Define `challenge-escrow.observer-receipt/v1` as a closed envelope for a
    release identity, observed head, finality evidence, canonical log digest,
    projected-state digest, anomaly digest, and RPC quorum result.
-2. I implement canonical receipt construction in JavaScript and an independent
+2. Implement canonical receipt construction in JavaScript and an independent
    Python verifier that does not import the TypeScript observer or JavaScript
    implementation.
-3. I publish one positive vector and a machine-readable negative corpus for
+3. Publish one positive vector and a machine-readable negative corpus for
    duplicate keys, non-canonical decimals, reordered providers, altered heads,
    stale release identity, digest mismatch, and hidden anomaly changes.
 
@@ -53,15 +53,15 @@ Exit evidence: both implementations reproduce the same canonical bytes and
 domain-separated receipt hash, while every negative case fails with a stable
 error code.
 
-## Lane 3 — RPC quorum and fork evidence
+## Lane 3: RPC quorum and fork evidence
 
-1. I generalize the current two-endpoint comparison into an endpoint-neutral
+1. Generalize the current two-endpoint comparison into an endpoint-neutral
    `N`-provider snapshot containing `latest`, `safe`, and `finalized` block
    references for every available provider.
-2. I select an agreed head only when a configured threshold supports one exact
-   block number, hash, and parent hash. I preserve dissent and outage evidence
+2. Select an agreed head only when a configured threshold supports one exact
+   block number, hash, and parent hash. Preserve dissent and outage evidence
    instead of silently dropping minority providers.
-3. I cover two-of-three agreement, split quorum, missing finality tags, stale
+3. Cover two-of-three agreement, split quorum, missing finality tags, stale
    providers, parent-hash forks, competing finalized groups, and complete
    outage as deterministic receipt inputs. Ambiguity remains `conflicted` or
    `unavailable`; it never becomes a financial authorization.
@@ -70,16 +70,16 @@ Exit evidence: provider URLs and credentials never enter the report, provider
 ordering cannot change the result, and no finality label is inferred from a
 `latest` head.
 
-## Lane 4 — authority and key-policy boundary
+## Lane 4: authority and key-policy boundary
 
-1. I define a versioned authority-policy schema with epochs, role groups,
+1. Define a versioned authority-policy schema with epochs, role groups,
    signer fingerprints, thresholds, validity bounds, predecessor lineage, and
    an explicit list of forbidden capabilities.
-2. I implement a static verifier that rejects zero or duplicate signers,
+2. Implement a static verifier that rejects zero or duplicate signers,
    cross-role control overlap, impossible thresholds, weak single-member
    quorums, broken epoch lineage, and owner, withdrawal, payout-redirection, or
    upgrade authority.
-3. I model member loss, signer compromise, quorum loss, pauser loss, and stale
+3. Model member loss, signer compromise, quorum loss, pauser loss, and stale
    policy replay. Each scenario produces a bounded response or a fail-closed
    result without accepting secret material.
 
@@ -87,17 +87,17 @@ Exit evidence: the policy artifact contains no private key, mnemonic, endpoint,
 or live address, and every accepted policy preserves resolver, arbiter, and
 pauser separation at the controller-fingerprint level.
 
-## Lane 5 — reproducible release attestation
+## Lane 5: reproducible release attestation
 
-1. I generate a versioned manifest over production Solidity sources, compiler
+1. Generate a versioned manifest over production Solidity sources, compiler
    and optimizer settings, runtime bytecode, ABI, schemas, vectors, proof
    ledger, and the new observer and authority artifacts.
-2. I verify the manifest independently from sorted file bytes and compiled
+2. Verify the manifest independently from sorted file bytes and compiled
    artifacts, including raw and immutable-normalized runtime hashes, the six
    public immutable groups, and SHA-256 digests of the public research
    boundary.
-3. I wire the cycle into package commands, CI-facing documentation, the threat
-   model, security review, audit package, reading guide, and README. I then run
+3. Wire the cycle into package commands, CI-facing documentation, the threat
+   model, security review, audit package, reading guide, and README. Then run
    the single complete validation and security pass, fix any failures, and
    record only evidence actually produced by that run.
 
@@ -107,8 +107,8 @@ deployment key or network endpoint.
 
 ## Final validation policy
 
-I do not run lane-by-lane test gates during implementation. After all fifteen
-stages are present, I run one integrated sequence:
+Lane-by-lane test gates were intentionally deferred during implementation.
+After all fifteen stages were present, one integrated sequence ran:
 
 ```text
 pnpm run prepare:depth3
@@ -116,7 +116,7 @@ pnpm run prepare:depth3
 
 That command regenerates the two golden vectors, builds the pinned compiler
 artifact, and writes the deterministic release manifest. It is release
-preparation rather than a passing test. I then run:
+preparation rather than a passing test. The validation sequence is:
 
 ```text
 pnpm run check:depth3
@@ -124,12 +124,12 @@ pnpm run audit:baseline
 git diff --check
 ```
 
-If that pass exposes an integration or security defect, I correct the defect
-and rerun the affected command plus the complete depth-cycle gate. I do not
-describe this work as a third-party audit, live-chain validation, key ceremony,
-incident-response exercise, or permission to use assets of value.
+If that pass exposes an integration or security defect, correct it and rerun the
+affected command plus the complete depth-cycle gate. This work is not a
+third-party audit, live-chain validation, key ceremony, incident-response
+exercise, or permission to use assets of value.
 
-## Executed result — 2026-08-09
+## Executed result: 2026-08-09
 
 | Lane | Recorded evidence |
 | --- | --- |
@@ -142,36 +142,36 @@ incident-response exercise, or permission to use assets of value.
 The first integrated depth gate exposed four ordinary integration defects: an
 overly strict receipt-head helper, the post-payment entitlement expectation in
 the stateful proof, a non-hex block fixture, and an imprecise lineage error
-code. I corrected those before the security pass.
+code. All four were corrected before the security pass.
 
 A later adversarial review found problems in the evidence around the code, not
-only in the code itself. I made observer synchronization atomic, ignored
-untrusted `removed` hints, validated header ancestry, bounded observer resource
-use, preserved simultaneous RPC conflict and outage evidence, rejected
-non-canonical event semantics, pinned testnet reads to one block hash, closed the
-provider-error vocabulary, required strict-majority authority thresholds, and
-made the formal, coverage, mutation, model, simulator, and Medusa runners prove
-that their expected checks actually ran. Medusa now reports four required
-properties separately from 36 auxiliary panic targets instead of presenting a
-flat `40/40` claim.
+only in the code itself. The resulting changes made observer synchronization
+atomic, ignored untrusted `removed` hints, validated header ancestry, bounded
+observer resource use, preserved simultaneous RPC conflict and outage evidence,
+rejected non-canonical event semantics, pinned testnet reads to one block hash,
+closed the provider-error vocabulary, required strict-majority authority
+thresholds, and made the formal, coverage, mutation, model, simulator, and
+Medusa runners prove that their expected checks actually ran. Medusa now reports
+four required properties separately from 36 auxiliary panic targets instead of
+presenting a flat `40/40` claim.
 
-The final manual pass closed three more trust-boundary gaps. I made direct
-state inspection reject role-overlapping participants, aggregate-liability
-contradictions, non-canonical absent tuples, and false arbiter identities. I
-made the projector reject mixed contracts, same-height forks, duplicate event
+The final manual pass closed three more trust-boundary gaps. Direct state
+inspection now rejects role-overlapping participants, aggregate-liability
+contradictions, non-canonical absent tuples, and false arbiter identities. The
+projector now rejects mixed contracts, same-height forks, duplicate event
 positions, schedule drift, and terminal results that do not match their
-proposal or dispute lineage. Finally, I preserved compiler immutable groups in
-the release manifest and made the testnet preflight compare every repeated live
+proposal or dispute lineage. Compiler immutable groups remain preserved in the
+release manifest, and the testnet preflight compares every repeated live
 substitution with its group and public getter instead of trusting one getter
-alongside a flat normalized runtime hash. I also tightened the projector to the
-exact proposal and dispute windows, required the release declaration to precede
-the projected lifecycle, and upgraded the testnet snapshot from a block number
-to a rechecked canonical block hash.
+alongside a flat normalized runtime hash. The projector also enforces the exact
+proposal and dispute windows and requires the release declaration to precede the
+projected lifecycle. The testnet snapshot was upgraded from a block number to a
+rechecked canonical block hash.
 
 The closing supply-chain review fixed another evidence gap: the complete audit
 now rejects drift from the exact Z3, Medusa, Gitleaks, Semgrep, and Slither
 versions used for this result, while the Halmos runner names its top-level
-version explicitly. I still record that this is not a hermetic analyzer image:
+version explicitly. This is still not a hermetic analyzer image:
 external binaries, transitive Halmos distributions, and remote Semgrep profiles
 are not content-addressed by this repository.
 
@@ -183,16 +183,17 @@ cache, and the schema gate rejects duplicate keys across the remaining public
 JSON before parsing.
 
 The event projector now also recomputes every payout entitlement ID from its
-challenge ID and wallet. I kept the Keccak-256 implementation dependency-free,
-bound it to fixed public vectors, and compare 128 deterministic cases with
-Foundry `cast`; its Deno subprocess permission is limited to that executable.
+challenge ID and wallet. The Keccak-256 implementation remains dependency-free,
+is bound to fixed public vectors, and is compared across 128 deterministic cases
+with Foundry `cast`; its Deno subprocess permission is limited to that
+executable.
 The last concurrency pass serializes overlapping observer synchronizations and
 freezes logs beside the reconciled head before any direct-state await. Every RPC
 provider snapshot now rechecks its latest block hash, and event identity uses
 the block-global log index rather than trusting a provider-supplied transaction
-index. I require compound state inspection at an explicit block, stop on an
-accounting contradiction, reject nonzero fields behind absent nested-state
-flags, reject participant overlap with the declared release, and reject a
+index. Compound state inspection now requires an explicit block, stops on an
+accounting contradiction, rejects nonzero fields behind absent nested-state
+flags, rejects participant overlap with the declared release, and rejects a
 non-exempt early `VOID` proposal before the source-correction cutoff. Authority
 rotations now hash their announcement time and must actually remain reviewable
 for the declared minimum delay.
@@ -200,13 +201,13 @@ for the declared minimum delay.
 The closing integrated run found two test-evidence defects and one portability
 defect in the audit wrapper. The differential quorum fixture represented an RPC
 outage without declaring the finality-tag method, so the two implementations
-correctly assigned different public error codes; I made the synthetic provider
-fail through the same declared interface. Mutation `M-06` then survived because
+correctly assigned different public error codes; the synthetic provider now
+fails through the same declared interface. Mutation `M-06` then survived because
 the suite checked an early call and the exact deadline but not the final second
-before it; I added the missing `deadline - 1` rejection and killed all 12
-mutations. Finally, Z3 reported the required `4.16.0` version with a platform
-bitness suffix; I now ignore only that standard suffix while retaining and
-checking the exact semantic version.
+before it; the missing `deadline - 1` rejection was added and all 12 mutations
+were killed. Finally, Z3 reported the required `4.16.0` version with a platform
+bitness suffix; the gate now ignores only that standard suffix while retaining
+and checking the exact semantic version.
 
 After those corrections, `check:depth3` passed from a clean restart and the
 separate audit passed all 29 checks. Gitleaks found no secret in either Git
