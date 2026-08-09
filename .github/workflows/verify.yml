@@ -17,11 +17,13 @@ jobs:
   verify:
     name: Protocol and dependency checks
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -34,6 +36,11 @@ jobs:
           node-version: 22.15.1
           cache: pnpm
 
+      - name: Set up Deno
+        uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2.0.4
+        with:
+          deno-version: 2.7.3
+
       - name: Set up Foundry
         uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09 # v1
         with:
@@ -42,17 +49,18 @@ jobs:
       - name: Set up pinned Rust
         run: rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: 0.9.29
+
+      - name: Set up symbolic tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes z3
+
       - name: Install locked dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Verify the protocol
-        run: pnpm check
-
-      - name: Verify portable semantics in three implementations
-        run: pnpm run portable:rust && pnpm run portable:differential
-
-      - name: Verify read-only testnet safety boundary
-        run: pnpm run testnet:check
-
-      - name: Inspect dependencies
-        run: pnpm audit --audit-level high
+      - name: Verify the complete depth-three boundary
+        run: pnpm run check:depth3

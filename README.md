@@ -20,20 +20,23 @@ am publishing the protocol work underneath that kind of product so the
 interesting parts can stand on their own.
 
 **Research status.** I publish unaudited code for local and testnet use with
-valueless assets only. I ask you to read [my security policy](SECURITY.md)
-before treating anything here as deployable.
+valueless assets only. I keep the conditions that must precede any deployment
+in [my security policy](SECURITY.md).
 
-## Start from the question you actually have
+## How I navigate the research
 
-| If you want to... | I would send you to... |
+| My question | Where I start |
 | --- | --- |
-| understand what I designed in ten minutes | [Protocol semantics](docs/PROTOCOL.md) |
-| see why I ended up with this shape | [Research evolution](docs/EVOLUTION.md) |
-| review my assumptions, failures, and remaining gaps | [Threat model](docs/THREAT-MODEL.md) and [security review](docs/SECURITY-REVIEW.md) |
-| reproduce my commitments outside Solidity | [Public vectors](spec/vectors/commitments-v1.json) and [their verifier](tools/verify-vectors.mjs) |
-| inspect the portable terms and evidence boundary | [Portable semantics](docs/PORTABLE-SEMANTICS.md), [error catalog](docs/PORTABLE-ERROR-CATALOG.md), and [conformance artifacts](spec/README.md) |
-| follow the current research depth cycle | [Depth cycle 2](docs/DEPTH-CYCLE-2.md) |
-| read or change my code | [Reading guide](docs/READING-GUIDE.md) and [contribution notes](CONTRIBUTING.md) |
+| I want to understand what I designed in ten minutes | [Protocol semantics](docs/PROTOCOL.md) |
+| I want to see why I ended up with this shape | [Research evolution](docs/EVOLUTION.md) |
+| I want to review my assumptions, failures, and remaining gaps | [Threat model](docs/THREAT-MODEL.md) and [security review](docs/SECURITY-REVIEW.md) |
+| I want to reproduce my commitments outside Solidity | [Public vectors](spec/vectors/commitments-v1.json) and [their verifier](tools/verify-vectors.mjs) |
+| I want to inspect the portable terms and evidence boundary | [Portable semantics](docs/PORTABLE-SEMANTICS.md), [error catalog](docs/PORTABLE-ERROR-CATALOG.md), and [conformance artifacts](spec/README.md) |
+| I want to reproduce an observer run and RPC quorum | [Observer receipts](docs/OBSERVER-RECEIPTS.md) and [observer implementation notes](tools/client/OBSERVER.md) |
+| I want to inspect operational authority assumptions | [Authority policy](docs/AUTHORITY-POLICY.md) |
+| I want to identify the exact reviewed source and runtime | [Release attestation](docs/RELEASE-ATTESTATION.md) |
+| I want to follow the current research depth cycle | [Depth cycle 3](docs/DEPTH-CYCLE-3.md) |
+| I want to read or change my code | [Reading guide](docs/READING-GUIDE.md) and [contribution notes](CONTRIBUTING.md) |
 
 ## The whole idea
 
@@ -83,23 +86,35 @@ I care about the edge conditions as much as the happy path:
   cannot drift into another challenge;
 - I use pull claims so one recipient cannot block everybody else;
 - I exercise timeout exits, pause behavior, and role separation as protocol
-  properties rather than leaving them in prose.
+  properties rather than leaving them in prose;
+- I retain supporters, dissenters, outages, and parent-hash forks in an
+  N-provider RPC quorum instead of silently trusting one endpoint;
+- I reject non-canonical event payloads, impossible outcome/reason pairs, and
+  observer inputs that exceed explicit local resource limits;
+- I make authority epochs, thresholds, custody separation, and forbidden
+  powers machine-readable without publishing keys, and I require every role
+  threshold to be a strict majority; and
+- I bind the reviewed sources, schemas, vectors, ABI, and deployed runtime in a
+  deterministic release manifest verified by two implementations.
 
 I record the local evidence in [the security review](docs/SECURITY-REVIEW.md):
-52 tests, 13 invariant properties, a 12-for-12 mutation baseline, static
-analysis, dependency inspection, and secret scans. I also record what I still
-have not proved.
+52 tests, 13 invariant properties, ten bounded Halmos properties, 24
+observer-receipt rejection cases in two implementations, 19 authority-policy
+rejection cases, 512 differential quorum cases, a 12-for-12 mutation baseline, an exact
+43-function compiled authority surface, static analysis, dependency inspection,
+and secret scans. I also record what I still have not proved.
 
 ## Run my reference locally
 
 <details>
 <summary>Requirements and commands</summary>
 
-I require Node.js 22.15.1 or newer, pnpm 10, and Foundry. The full portable
-semantics gate also uses the pinned Rust toolchain in `rust-toolchain.toml`.
+I require Node.js 22.15.1 or newer, pnpm 10, Foundry, and Deno 2.7.3. The full
+portable semantics gate also uses the pinned Rust toolchain in
+`rust-toolchain.toml`.
 
 ```sh
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile --ignore-scripts
 pnpm check
 pnpm audit:dependencies
 ```
@@ -115,11 +130,30 @@ That gate runs the Solidity baseline, schema checks, JavaScript/Python/Rust
 conformance implementations, the twelve-case negative corpus, and the
 locked dependency audit.
 
+For the complete current research boundary, I run:
+
+```sh
+pnpm run check:depth3
+```
+
+That adds the contract-coupled symbolic properties, N-provider observer and
+receipt checks, a 512-case differential quorum corpus, the independent Python
+receipt verifier, authority-policy and incident corpora, a block-hash-pinned
+read-only testnet boundary, deterministic supply-chain checks, and
+two-implementation release-manifest verification.
+
+For the heavier local security review, `pnpm run audit:baseline` also runs
+Medusa, Gitleaks, Semgrep, and the exact Slither finding gate. It records every
+tool version and fails if the reviewed analyzer versions drift. I document the
+remaining non-hermetic package and remote-rule inputs in the
+[audit package](docs/AUDIT-PACKAGE.md).
+
 For a read-only Sepolia or Base Sepolia inspection, I use the safety boundary
 in [`tools/testnet/README.md`](tools/testnet/README.md). The local test suite
 proves that it rejects credentials, write RPC methods, unsafe URLs, wrong
-chains, and non-`TESTNET_NO_VALUE` release events before I give it any endpoint
-or address.
+chains, credential-bearing URL paths, non-`TESTNET_NO_VALUE` release events,
+code drift, and inconsistent immutable substitutions before I give it any
+endpoint or address.
 
 `pnpm check` verifies formatting, recomputes my public commitment boundary,
 builds with the pinned compiler, and runs the security profile. I include no

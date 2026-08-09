@@ -1,0 +1,308 @@
+{
+  "schema": "challenge-escrow.observer-receipt-vector/v1",
+  "input": {
+    "release": {
+      "chainId": "11155111",
+      "escrowContract": "0x1111111111111111111111111111111111111111",
+      "releaseId": "0x78c9acd13f67c3f89c37b4200b920695657f1617ee4e5d6f3f4e73b02afc1c02",
+      "eventProtocolId": "challenge-escrow-event/v1",
+      "protocolVersion": "challenge-escrow-protocol/v1"
+    },
+    "head": {
+      "number": "100",
+      "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+      "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777",
+      "finality": "safe"
+    },
+    "providers": [
+      {
+        "providerId": "provider-c",
+        "status": "available",
+        "latest": {
+          "number": "102",
+          "hash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "safe": {
+          "number": "100",
+          "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+          "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        "finalized": {
+          "number": "98",
+          "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+          "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "error": null
+      },
+      {
+        "providerId": "provider-a",
+        "status": "available",
+        "latest": {
+          "number": "102",
+          "hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "safe": {
+          "number": "100",
+          "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+          "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        "finalized": {
+          "number": "98",
+          "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+          "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "error": null
+      },
+      {
+        "providerId": "provider-b",
+        "status": "available",
+        "latest": {
+          "number": "102",
+          "hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+        },
+        "safe": {
+          "number": "100",
+          "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+          "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        "finalized": {
+          "number": "98",
+          "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+          "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "error": null
+      }
+    ],
+    "threshold": "2",
+    "logs": [
+      {
+        "kind": "ReleaseDeclared",
+        "blockNumber": "98",
+        "transactionHash": "0x1212121212121212121212121212121212121212121212121212121212121212"
+      },
+      {
+        "kind": "ChallengeCreated",
+        "blockNumber": "99",
+        "challengeId": "0x3434343434343434343434343434343434343434343434343434343434343434"
+      }
+    ],
+    "challenges": [
+      {
+        "challengeId": "0x3434343434343434343434343434343434343434343434343434343434343434",
+        "state": "OPEN",
+        "outstandingLiability": "1000000"
+      }
+    ],
+    "anomalies": [
+      {
+        "code": "rpc_latest_dissent",
+        "providerId": "provider-c",
+        "severity": "warning"
+      }
+    ]
+  },
+  "expected": {
+    "receipt": {
+      "schema": "challenge-escrow.observer-receipt/v1",
+      "release": {
+        "chainId": "11155111",
+        "escrowContract": "0x1111111111111111111111111111111111111111",
+        "releaseId": "0x78c9acd13f67c3f89c37b4200b920695657f1617ee4e5d6f3f4e73b02afc1c02",
+        "eventProtocolId": "challenge-escrow-event/v1",
+        "protocolVersion": "challenge-escrow-protocol/v1"
+      },
+      "head": {
+        "number": "100",
+        "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+        "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777",
+        "finality": "safe"
+      },
+      "quorum": {
+        "schema": "challenge-escrow.rpc-quorum/v1",
+        "status": "agree",
+        "threshold": "2",
+        "compared": [
+          "latest",
+          "safe",
+          "finalized"
+        ],
+        "heads": {
+          "latest": {
+            "status": "agree",
+            "agreed": {
+              "number": "102",
+              "hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "supporters": [
+              "provider-a",
+              "provider-b"
+            ],
+            "dissenters": [
+              "provider-c"
+            ],
+            "unavailable": [],
+            "groups": [
+              {
+                "block": {
+                  "number": "102",
+                  "hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+                },
+                "providers": [
+                  "provider-a",
+                  "provider-b"
+                ]
+              },
+              {
+                "block": {
+                  "number": "102",
+                  "hash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+                },
+                "providers": [
+                  "provider-c"
+                ]
+              }
+            ]
+          },
+          "safe": {
+            "status": "agree",
+            "agreed": {
+              "number": "100",
+              "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+              "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "supporters": [
+              "provider-a",
+              "provider-b",
+              "provider-c"
+            ],
+            "dissenters": [],
+            "unavailable": [],
+            "groups": [
+              {
+                "block": {
+                  "number": "100",
+                  "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+                  "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+                },
+                "providers": [
+                  "provider-a",
+                  "provider-b",
+                  "provider-c"
+                ]
+              }
+            ]
+          },
+          "finalized": {
+            "status": "agree",
+            "agreed": {
+              "number": "98",
+              "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+              "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+            },
+            "supporters": [
+              "provider-a",
+              "provider-b",
+              "provider-c"
+            ],
+            "dissenters": [],
+            "unavailable": [],
+            "groups": [
+              {
+                "block": {
+                  "number": "98",
+                  "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+                  "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+                },
+                "providers": [
+                  "provider-a",
+                  "provider-b",
+                  "provider-c"
+                ]
+              }
+            ]
+          }
+        },
+        "providers": [
+          {
+            "providerId": "provider-a",
+            "status": "available",
+            "latest": {
+              "number": "102",
+              "hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "safe": {
+              "number": "100",
+              "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+              "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "finalized": {
+              "number": "98",
+              "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+              "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+            },
+            "error": null
+          },
+          {
+            "providerId": "provider-b",
+            "status": "available",
+            "latest": {
+              "number": "102",
+              "hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "safe": {
+              "number": "100",
+              "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+              "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "finalized": {
+              "number": "98",
+              "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+              "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+            },
+            "error": null
+          },
+          {
+            "providerId": "provider-c",
+            "status": "available",
+            "latest": {
+              "number": "102",
+              "hash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "parentHash": "0x9999999999999999999999999999999999999999999999999999999999999999"
+            },
+            "safe": {
+              "number": "100",
+              "hash": "0x8888888888888888888888888888888888888888888888888888888888888888",
+              "parentHash": "0x7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "finalized": {
+              "number": "98",
+              "hash": "0x6666666666666666666666666666666666666666666666666666666666666666",
+              "parentHash": "0x5555555555555555555555555555555555555555555555555555555555555555"
+            },
+            "error": null
+          }
+        ]
+      },
+      "commitments": {
+        "canonicalLogs": "sha256:cf70c809e338597d2af8a2bbd8dd1a0a5fc29fb95436344006af2d5ecb88c77c",
+        "projectedState": "sha256:6307219c11f94a2399acec7df486f46b72e08d01cbfc6b94ed30f10e3582222b",
+        "anomalies": "sha256:f5804c5bfb9e76dc6983711f2b1147f0bfca7fb93bcb3e65d2171a5e9dfe3ab1"
+      },
+      "counts": {
+        "logs": "2",
+        "challenges": "1",
+        "anomalies": "1"
+      }
+    },
+    "receiptHash": "0x47441bcc4db2b3935b6cc6e571f98347953d7dbb6a0fc19feea0b34dcbf57a53",
+    "canonicalBytes": "4692"
+  }
+}

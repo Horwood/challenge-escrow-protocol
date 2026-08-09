@@ -12,11 +12,17 @@ treat resolver, arbiter, and pauser addresses as immutable trust assumptions. A
 malicious or unavailable authority can delay the intended flow; my timeout and
 pull-based exits limit that trust but do not remove it.
 
+I publish machine-readable observer receipts, RPC quorum evidence, an authority
+policy, and a reproducible release manifest to make those assumptions easier to
+inspect. They contain no live endpoint, credential, private key, funded address,
+or deployment procedure. They are review artifacts, not evidence that a real
+provider set, key ceremony, incident process, or live deployment exists.
+
 ## Reporting a vulnerability
 
-I ask you to use GitHub's **Report a vulnerability** control on this
-repository's Security page. It creates a private report for me. I ask
-reporters not to open a public issue containing an exploit, private key,
+I receive vulnerability reports through GitHub's **Report a vulnerability**
+control on this repository's Security page. It creates a private report for
+me. I ask reporters not to open a public issue containing an exploit, private key,
 credential, funded address, or personal data.
 
 If private reporting is temporarily unavailable, I ask reporters to open a

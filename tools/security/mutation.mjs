@@ -5,7 +5,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { join, resolve, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -51,10 +51,10 @@ const mutationTargets = [
   },
   {
     id: "M-06",
-    description: "Close uncontested finalization one second early",
+    description: "Allow uncontested finalization one second early",
     file: "src/ChallengeEscrowKernel.sol",
     search: "if (currentTime < challenge.proposal.disputeDeadline) {",
-    replace: "if (currentTime <= challenge.proposal.disputeDeadline) {",
+    replace: "if (currentTime < challenge.proposal.disputeDeadline - 1) {",
   },
   {
     id: "M-07",
@@ -86,10 +86,10 @@ const mutationTargets = [
   },
   {
     id: "M-11",
-    description: "Reject an execution whose timeout exactly covers the longest path",
+    description: "Allow a timeout one second shorter than the longest proposal path",
     file: "src/ChallengeEscrowKernel.sol",
     search: "latestProposalPath > execution.timeoutVoidAt",
-    replace: "latestProposalPath >= execution.timeoutVoidAt",
+    replace: "latestProposalPath > uint256(execution.timeoutVoidAt) + 1",
   },
   {
     id: "M-12",
@@ -104,11 +104,8 @@ function copyContracts(destination) {
   cpSync(sourceContracts, destination, {
     recursive: true,
     filter(source) {
-      return ![
-        `${sep}out${sep}`,
-        `${sep}cache${sep}`,
-        `${sep}broadcast${sep}`,
-      ].some((fragment) => source.includes(fragment));
+      const topLevel = relative(sourceContracts, source).split(sep)[0];
+      return !["out", "cache", "broadcast"].includes(topLevel);
     },
   });
   cpSync(join(root, "node_modules"), join(destination, "..", "node_modules"), {
@@ -162,7 +159,8 @@ function runMutation(mutation) {
       env: { ...process.env, FOUNDRY_PROFILE: "default" },
     });
     const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.trim();
-    const killed = result.status !== 0 || Boolean(result.error);
+    const killed = !result.error && result.status !== 0 && /Suite result: FAILED\./.test(output);
+    const invalid = Boolean(result.error) || (result.status !== 0 && !killed);
     const signalLines = output
       .split("\n")
       .map((line) => line.trim())
@@ -176,6 +174,7 @@ function runMutation(mutation) {
       id: mutation.id,
       description: mutation.description,
       killed,
+      invalid,
       exitCode: result.status,
       signal: result.signal,
       error: result.error?.message,
@@ -188,14 +187,16 @@ function runMutation(mutation) {
 
 const startedAt = Date.now();
 const results = mutationTargets.map(runMutation);
-const survivors = results.filter((result) => !result.killed);
+const invalid = results.filter((result) => result.invalid);
+const survivors = results.filter((result) => !result.killed && !result.invalid);
 const report = {
-  status: survivors.length === 0 ? "ok" : "failed",
+  status: survivors.length === 0 && invalid.length === 0 ? "ok" : "failed",
   mutations: results.length,
   killed: results.filter((result) => result.killed).length,
+  invalid: invalid.length,
   survived: survivors.length,
   durationMs: Date.now() - startedAt,
   results,
 };
 console.log(JSON.stringify(report, null, 2));
-if (survivors.length > 0) process.exitCode = 1;
+if (survivors.length > 0 || invalid.length > 0) process.exitCode = 1;

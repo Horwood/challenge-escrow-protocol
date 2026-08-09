@@ -857,6 +857,9 @@ contract ChallengeEscrowTest {
             EVENT_ABSENCE_EVIDENCE_HASH,
             bytes32(uint256(1))
         );
+        vm.warp(disputeDeadline - 1);
+        vm.expectPartialRevert(ChallengeEscrowKernel.DisputeDeadlineNotReached.selector);
+        release.finalizeUncontested(proposedId);
         vm.warp(disputeDeadline);
         vm.expectPartialRevert(ChallengeEscrowKernel.DisputeWindowClosed.selector);
         vm.prank(challenger);

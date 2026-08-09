@@ -1,0 +1,149 @@
+{
+  "schema": "challenge-escrow.observer-receipt-negative/v1",
+  "cases": [
+    {
+      "id": "duplicate-json-key",
+      "operation": "parse",
+      "mutation": "duplicate-json-key",
+      "expectedCode": "DuplicateKey"
+    },
+    {
+      "id": "nfc-colliding-json-keys",
+      "operation": "parse",
+      "mutation": "nfc-colliding-json-keys",
+      "expectedCode": "DuplicateKey"
+    },
+    {
+      "id": "duplicate-provider",
+      "operation": "build",
+      "mutation": "duplicate-provider",
+      "expectedCode": "DuplicateProvider"
+    },
+    {
+      "id": "noncanonical-threshold",
+      "operation": "build",
+      "mutation": "noncanonical-threshold",
+      "expectedCode": "NonCanonicalDecimal"
+    },
+    {
+      "id": "threshold-is-not-a-strict-majority",
+      "operation": "build",
+      "mutation": "non-majority-threshold",
+      "expectedCode": "InvalidThreshold"
+    },
+    {
+      "id": "evidence-item-limit",
+      "operation": "build",
+      "mutation": "oversized-evidence-set",
+      "expectedCode": "ResourceLimit"
+    },
+    {
+      "id": "evidence-depth-limit",
+      "operation": "build",
+      "mutation": "deep-evidence",
+      "expectedCode": "ResourceLimit"
+    },
+    {
+      "id": "uint256-overflow",
+      "operation": "build",
+      "mutation": "uint256-overflow",
+      "expectedCode": "DecimalRange"
+    },
+    {
+      "id": "block-number-overflow",
+      "operation": "build",
+      "mutation": "block-number-overflow",
+      "expectedCode": "DecimalRange"
+    },
+    {
+      "id": "release-id-does-not-match-chain-and-escrow",
+      "operation": "build",
+      "mutation": "release-id-mismatch",
+      "expectedCode": "ReleaseDrift"
+    },
+    {
+      "id": "provider-id-leaks-endpoint",
+      "operation": "build",
+      "mutation": "unsafe-provider-id",
+      "expectedCode": "UnsafeProviderId"
+    },
+    {
+      "id": "provider-id-looks-like-hostname",
+      "operation": "build",
+      "mutation": "hostname-provider-id",
+      "expectedCode": "UnsafeProviderId"
+    },
+    {
+      "id": "provider-error-leaks-endpoint",
+      "operation": "build",
+      "mutation": "unsafe-provider-error",
+      "expectedCode": "UnsafeProviderError"
+    },
+    {
+      "id": "provider-error-is-unrecognized-secret-like-code",
+      "operation": "build",
+      "mutation": "unrecognized-provider-error",
+      "expectedCode": "UnsafeProviderError"
+    },
+    {
+      "id": "unavailable-provider-carries-head",
+      "operation": "build",
+      "mutation": "unavailable-provider-carries-head",
+      "expectedCode": "ProviderStatus"
+    },
+    {
+      "id": "invalid-finality-order",
+      "operation": "build",
+      "mutation": "invalid-finality-order",
+      "expectedCode": "FinalityOrder"
+    },
+    {
+      "id": "same-height-finality-fork",
+      "operation": "build",
+      "mutation": "same-height-finality-fork",
+      "expectedCode": "FinalityOrder"
+    },
+    {
+      "id": "unknown-unobserved-head",
+      "operation": "build",
+      "mutation": "unknown-unobserved-head",
+      "expectedCode": "HeadNotInQuorum"
+    },
+    {
+      "id": "parent-hash-fork",
+      "operation": "build",
+      "mutation": "parent-hash-fork",
+      "expectedCode": "HeadNotInQuorum"
+    },
+    {
+      "id": "altered-receipt-head",
+      "operation": "validate",
+      "mutation": "altered-head",
+      "expectedCode": "HeadNotInQuorum"
+    },
+    {
+      "id": "release-identity-drift",
+      "operation": "validate",
+      "mutation": "release-drift",
+      "expectedCode": "ReleaseDrift"
+    },
+    {
+      "id": "noncanonical-provider-order",
+      "operation": "validate",
+      "mutation": "provider-order",
+      "expectedCode": "QuorumMismatch"
+    },
+    {
+      "id": "receipt-digest-mismatch",
+      "operation": "verify",
+      "mutation": "digest-mismatch",
+      "expectedCode": "ReceiptMismatch"
+    },
+    {
+      "id": "hidden-anomaly-change",
+      "operation": "verify",
+      "mutation": "hidden-anomaly",
+      "expectedCode": "ReceiptMismatch"
+    }
+  ]
+}

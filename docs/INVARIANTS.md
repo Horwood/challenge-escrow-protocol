@@ -71,16 +71,16 @@ do not change lifecycle state and therefore sit outside this transition graph.
 | `P-09` | Acceptance authorization binds challenge, specification, wallet, nonce, expiry, chain, release, and challenger signature | Permit tests, security suite, EIP-712 vector | Confirmed for exercised invalid permutations |
 | `P-10` | Resolver, arbiter, pauser, token, escrow, challenger, and accepting wallet cannot overlap where the release forbids overlap | Constructor tests, role tests, pauser tests | Confirmed for tested overlaps; constructor matrix is incomplete |
 | `P-11` | Pause blocks new funding, acceptance, and proposals while disputes, finalization, timeouts, claims, and refunds remain available | Pause regression and stateful pause invariant | Confirmed for exercised actions |
-| `P-12` | Every dispute parent hash equals the immediately preceding proposal evidence; arbitration points to dispute evidence | Evidence boundary tests and transition checks | Confirmed for direct tests; full reason and path metadata is partial |
+| `P-12` | Every dispute parent hash equals the immediately preceding proposal evidence; arbitration points to dispute evidence | Evidence boundary tests, direct-state decoder, and event projector | Confirmed for local direct-state and event fixtures; live cross-provider reconciliation remains open |
 | `P-13` | A terminal lifecycle state and its final resolution cannot be rewritten | Finality regression and stateful finality invariant | Confirmed for exercised terminal transitions |
 | `P-14` | A resolved outcome creates exactly one winner entitlement for two stakes; `VOID` creates one principal entitlement per participant | Payout tests and financial invariant | Confirmed for exercised paths |
 | `P-15` | Each entitlement can be consumed once, and a failed token transfer leaves it retryable | Security suite and adversarial token tests | Confirmed for exercised transfer failures |
 | `P-16` | Every token movement requires exact return semantics and exact sender and recipient balance deltas | `ExactTokenDelta.sol` tests and incoming/outgoing adversarial handlers | Confirmed for covered token behaviors |
 | `P-17` | One blocked recipient cannot prevent another participant from claiming or refunding | Independent void-refund regression test | Confirmed for direct path |
 | `P-18` | Resolver, arbiter, and pauser have no withdrawal or payout-redirection path | Authority invariant and source inspection | Confirmed for current surface; formal exclusion remains pending |
-| `P-19` | Events expose deterministic identities and committed hashes, while event history never creates a financial right | `ChallengeCreated` storage-reconciliation fixture, reorganization observer tests, and public threat model | Partial: every event payload and live-chain rollback/censorship path are not yet executable |
+| `P-19` | Events expose deterministic identities and committed hashes, while event history never creates a financial right | Complete v1 decoder, lifecycle projector, direct-state inspection, reorganization observer tests, and public threat model | Confirmed for local fixtures; live-chain rollback, omission, and censorship remain open |
 | `P-20` | Invalid calls revert atomically, preserving challenge storage, entitlements, aggregate liability, and escrow balance | Snapshot assertions in the stateful handler and adversarial token tests | Confirmed for modeled failures; complete error matrix is pending |
-| `P-21` | Release configuration is direct and immutable: no proxy, delegatecall, owner withdrawal, rescue, or fee-redirection path can change the token, roles, or payout rules | Constructor and source inspection | Partial: this becomes an explicit negative property in the independent model and symbolic checks |
+| `P-21` | Release configuration is direct and immutable: no proxy, delegatecall, owner withdrawal, rescue, or fee-redirection path can change the token, roles, or payout rules | Constructor tests, attack baseline, runtime manifest, and immutable-group preflight | Confirmed for the current source and runtime template; independent bytecode audit remains open |
 | `P-22` | `ReleaseDeclared` is emitted once with the same protocol, schema, chain, release, token, decimals, and role tuple that the release exposes afterward | Constructor event test decodes and compares every non-indexed field, plus the indexed release identity | Confirmed for the tested constructor tuple; a broader parameter matrix remains useful |
 
 ## Financial equations
@@ -133,7 +133,7 @@ production implementation.
 
 I added `tools/formal/src/ChallengeEscrowHalmosProperties.sol`, which calls the
 production `ChallengeEscrow` accessors and the exact production commitment
-libraries under symbolic inputs. `pnpm run formal:contract` proves five
+libraries under symbolic inputs. `pnpm run formal:contract` proves ten
 properties with Halmos 0.3.3 and Z3; the machine-readable ledger and its scope
 are recorded in `docs/FORMAL-PROOF-LEDGER.md` and
 `tools/formal/proof-ledger.json`.

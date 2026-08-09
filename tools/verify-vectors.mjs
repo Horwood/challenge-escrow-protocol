@@ -6,7 +6,7 @@ const vector = JSON.parse(
 );
 
 function cast(...args) {
-  return execFileSync("cast", args, { encoding: "utf8" }).trim().toLowerCase();
+  return execFileSync("cast", args, { encoding: "utf8", timeout: 10_000 }).trim().toLowerCase();
 }
 
 function hexUtf8(value) {

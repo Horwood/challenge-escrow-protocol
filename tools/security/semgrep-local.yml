@@ -1,0 +1,68 @@
+rules:
+  - id: challenge-escrow.solidity-forbidden-control-primitives
+    message: Production code must not introduce delegatecall, callcode, selfdestruct, or suicide.
+    severity: ERROR
+    languages: [solidity]
+    pattern-either:
+      - pattern: $TARGET.delegatecall(...)
+      - pattern: delegatecall(...)
+      - pattern: callcode(...)
+      - pattern: selfdestruct(...)
+      - pattern: suicide(...)
+    paths:
+      include: [/contracts/src/**]
+
+  - id: challenge-escrow.solidity-no-tx-origin
+    message: Authorization must never depend on tx.origin.
+    severity: ERROR
+    languages: [solidity]
+    pattern: tx.origin
+    paths:
+      include: [/contracts/src/**]
+
+  - id: challenge-escrow.no-dynamic-javascript-execution
+    message: Research tooling must not evaluate dynamically supplied JavaScript.
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+      - pattern: Function(...)
+    paths:
+      include: [/tools/**]
+
+  - id: challenge-escrow.no-python-shell
+    message: Python verification must not invoke a command through a shell.
+    severity: ERROR
+    languages: [python]
+    patterns:
+      - pattern: subprocess.$FUNC(..., shell=True, ...)
+    paths:
+      include: [/tools/**]
+
+  - id: challenge-escrow.no-tls-verification-bypass
+    message: Tooling must not disable TLS certificate verification.
+    severity: ERROR
+    languages: [generic]
+    pattern-regex: >-
+      (?i)(NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*["']?0|rejectUnauthorized\s*:\s*false|verify\s*=\s*False)
+    paths:
+      include: [/tools/**, /.github/**]
+      exclude: [/tools/security/semgrep-local.yml]
+
+  - id: challenge-escrow.no-secret-bearing-environment-input
+    message: Public research tooling must not introduce private-key, mnemonic, seed, or signing-secret inputs.
+    severity: ERROR
+    languages: [generic]
+    pattern-regex: '(?i)(process\.env\.|os\.environ|os\.getenv).{0,32}(private.?key|mnemonic|seed.?phrase|signing.?secret)'
+    paths:
+      include: [/tools/**]
+      exclude: [/tools/security/semgrep-local.yml]
+
+  - id: challenge-escrow.testnet-preflight-read-only-rpc
+    message: The testnet preflight implementation must not name a signing or transaction RPC method.
+    severity: ERROR
+    languages: [generic]
+    pattern-regex: '(?i)(eth_(send|sign|accounts|requestAccounts)|personal_|wallet_)'
+    paths:
+      include: [/tools/testnet/read-only.mjs]

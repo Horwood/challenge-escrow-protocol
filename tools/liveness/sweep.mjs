@@ -102,6 +102,14 @@ const maxResolverSilence = Math.max(...valid.map((sample) => sample.windows.reso
 const maxArbiterSilence = Math.max(...valid.map((sample) => sample.windows.arbiterSilence));
 const maxProtocolBound = Math.max(...valid.map((sample) => sample.windows.protocolBound));
 const boundary = valid.find((sample) => sample.windows.timeoutSlack === minSlack);
+assert.equal(valid.length + invalid.length, SAMPLES, "liveness corpus partition drifted");
+assert.ok(valid.length > 0 && invalid.length > 0, "liveness corpus did not exercise both acceptance and rejection");
+assert.equal(minSlack, 0, "exact timeout boundary was not accepted");
+assert.ok(boundary, "exact timeout boundary fixture is missing");
+const invalidReasonSet = new Set(invalid.flatMap((sample) => sample.validation.failures));
+for (const reason of ["timeout-covers-all-paths", "correction-before-dispute-end", "correction-order"]) {
+  assert.ok(invalidReasonSet.has(reason), `liveness corpus did not exercise ${reason}`);
+}
 
 console.log(JSON.stringify({
   status: "ok",

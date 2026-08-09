@@ -1,7 +1,7 @@
 # Reading guide
 
 I split my repository into two layers: a small Solidity release and the
-research that explains why I shaped it this way. I would start where your
+research that explains why I shaped it this way. I start where my active
 question lives.
 
 ## Five minutes: the protocol shape
@@ -51,6 +51,22 @@ immutable release metadata, nested challenge state, and entitlements without a
 signer. The reorganization-safe observer in `tools/client/observer.ts` keeps
 events useful for discovery while requiring direct state reconciliation before
 any financial interpretation.
+
+I use [portable observer receipts](OBSERVER-RECEIPTS.md) when I need to hand an
+observer run to another implementation without hiding its release identity,
+head, quorum dissent, projected state, or anomalies.
+
+## Operations and exact release identity
+
+I keep the contract's immutable roles separate from a hypothetical operational
+setup. [The authority policy](AUTHORITY-POLICY.md) makes epochs, thresholds,
+controller separation, forbidden powers, and incident outcomes reviewable
+without publishing keys or pretending a ceremony occurred.
+
+[The release attestation](RELEASE-ATTESTATION.md) is the shortest route from a
+review comment to exact source bytes, compiler settings, ABI, and deployed
+runtime hashes. I use it to detect research-package drift, not as a substitute
+for an auditor or live-chain verification.
 
 ## The shortest honest safety statement
 

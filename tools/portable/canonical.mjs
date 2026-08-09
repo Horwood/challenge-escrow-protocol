@@ -109,8 +109,8 @@ function scanObject(text, start) {
     assert(text[index] === '"', `expected an object key at ${index}`);
     const keyStart = index;
     index = scanString(text, index);
-    const key = JSON.parse(text.slice(keyStart, index));
-    assert(!keys.has(key), `duplicate object key: ${key}`);
+    const key = normalizedString(JSON.parse(text.slice(keyStart, index)), "object key");
+    assert(!keys.has(key), `duplicate object key after NFC normalization: ${key}`);
     keys.add(key);
     index = skipWhitespace(text, index);
     assert(text[index] === ":", `expected an object colon at ${index}`);
@@ -156,7 +156,7 @@ export function canonicalizeJson(text) {
 export function domainHash(domain, value) {
   const bytes = Buffer.from(`${domain}\0${canonicalizeValue(value)}`, "utf8");
   const encoded = `0x${bytes.toString("hex")}`;
-  return execFileSync("cast", ["keccak", encoded], { encoding: "utf8" }).trim().toLowerCase();
+  return execFileSync("cast", ["keccak", encoded], { encoding: "utf8", timeout: 10_000 }).trim().toLowerCase();
 }
 
 export function validateCondition(document, label = "condition") {

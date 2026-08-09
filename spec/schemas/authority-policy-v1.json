@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.authority-policy/v1",
+  "title": "Challenge Escrow authority policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "policyId",
+    "policyHash",
+    "lineage",
+    "roles",
+    "forbiddenCapabilities",
+    "rotation"
+  ],
+  "properties": {
+    "schema": { "const": "challenge-escrow.authority-policy/v1" },
+    "policyId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+    },
+    "policyHash": { "$ref": "#/$defs/hash" },
+    "lineage": { "$ref": "#/$defs/lineage" },
+    "roles": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "$ref": "#/$defs/role" }
+    },
+    "forbiddenCapabilities": {
+      "const": [
+        "delegatecall",
+        "owner-withdrawal",
+        "payout-redirection",
+        "proxy-upgrade",
+        "token-rescue"
+      ]
+    },
+    "rotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimumDelaySeconds", "maximumEpochSeconds"],
+      "properties": {
+        "minimumDelaySeconds": { "$ref": "#/$defs/decimal" },
+        "maximumEpochSeconds": { "$ref": "#/$defs/decimal" }
+      }
+    }
+  },
+  "$defs": {
+    "decimal": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 78
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{64}$"
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["epoch", "predecessorPolicyHash", "announcedAt", "validFrom", "validUntil"],
+      "properties": {
+        "epoch": { "$ref": "#/$defs/decimal" },
+        "predecessorPolicyHash": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/hash" }
+          ]
+        },
+        "announcedAt": { "$ref": "#/$defs/decimal" },
+        "validFrom": { "$ref": "#/$defs/decimal" },
+        "validUntil": { "$ref": "#/$defs/decimal" }
+      }
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fingerprint", "custody"],
+      "properties": {
+        "fingerprint": { "$ref": "#/$defs/fingerprint" },
+        "custody": {
+          "enum": ["hardware", "institutional", "offline-recovery"]
+        }
+      }
+    },
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "threshold", "members"],
+      "properties": {
+        "role": { "enum": ["arbiter", "pauser", "resolver"] },
+        "threshold": { "$ref": "#/$defs/decimal" },
+        "members": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 7,
+          "items": { "$ref": "#/$defs/member" }
+        }
+      }
+    }
+  }
+}

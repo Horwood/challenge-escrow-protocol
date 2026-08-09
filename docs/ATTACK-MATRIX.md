@@ -49,6 +49,11 @@ do not use them as a substitute for this matrix.
 | `A-13` | Overflow stake payout or any derived deadline while satisfying the public execution constraints | CHC arithmetic lemmas plus boundary fixtures | P0 |
 | `A-14` | Introduce an owner, proxy, delegate call, rescue, fee, or role-rotation path through a future refactor | Bytecode/source negative search and authority invariant | P0 |
 | `A-15` | Treat an event replay, omission, duplication, or reorganization as a financial authorization | Direct storage reconciliation; events never create entitlement | P1 |
+| `A-16` | Forge a payout event with the right wallet and amount but an unrelated entitlement ID | Production-domain ID recomputation plus fixed and differential Keccak vectors | P1 |
+| `A-17` | Complete two observer synchronizations out of order or update logs while a direct-state reconciliation is awaiting | One serialized in-flight sync and a frozen head/log snapshot | P1 |
+| `A-18` | Hide nonzero proposal, dispute, final-resolution, or entitlement fields behind an absent flag, or project an early non-exempt `VOID` | Canonical zero tuples and production correction-cutoff parity | P1 |
+| `A-19` | Mix finality tags across a same-height RPC reorganization or reuse one block-global log index under another transaction index | Final latest-header reread and block-hash/log-index event identity | P1 |
+| `A-20` | Assemble one inspection from several blocks or accept entitlements that do not conserve the decoded deposit | Required explicit block tag and fail-closed accounting reconciliation | P0 |
 
 ## Mutation baseline
 
@@ -67,24 +72,28 @@ unique mutation killer.
 | `M-03` | Ignore acceptance nonce or expiry | Replay and stale-permit tests |
 | `M-04` | Allow a role or participant wallet to accept | Constructor and participant overlap matrix |
 | `M-05` | Ignore proposal or dispute parent evidence | Lineage fixtures |
-| `M-06` | Move finalization or dispute one boundary earlier | `t - 1`, `t`, `t + 1` fixtures |
-| `M-07` | Replace independent `VOID` refunds with a shared payout path | Blocked-recipient isolation |
+| `M-06` | Allow uncontested finalization one second before its deadline | `t - 1`, `t`, `t + 1` fixtures |
+| `M-07` | Disable accepted-challenge `VOID` refund eligibility | `VOID` refund and blocked-recipient isolation tests |
 | `M-08` | Remove exact incoming or outgoing balance-delta checks | Adversarial token corpus |
 | `M-09` | Permit a second entitlement consumption | Claim/refund replay tests |
 | `M-10` | Flip the winner-side mapping | A/B resolution matrix |
-| `M-11` | Relax `timeoutVoidAt` path bounds | Deadline arithmetic and timeout tests |
-| `M-12` | Add an authority escape hatch | Source and deployed-bytecode negative checks |
+| `M-11` | Allow `timeoutVoidAt` to undershoot the longest proposal path by one second | Deadline arithmetic and timeout tests |
+| `M-12` | Allow resolver and arbiter authority overlap | Constructor role-separation tests |
 
 ## Static-analysis interpretation
 
 Slither still reports the deliberate low-level token calls, block-timestamp
 comparisons, inline assembly, validation complexity, enum comparison, and a
-medium `reentrancy-no-eth` finding around the token callback. I classify the
-last item as a read-only callback surface rather than a cleared finding: every
-state-changing entry point is protected by `nonReentrant`, and the adversarial
-token suite checks that a callback cannot re-enter it. I keep the finding in
-the matrix until an independent review confirms that no callback result is
-consumed before the guarded transition completes.
+medium `reentrancy-no-eth` finding around the token callback. The enum
+comparison is separately reported as medium `incorrect-equality`; it selects
+the opposite side from the two-value `Side` enum and is not a balance or
+authorization equality. I classify the callback as a guarded observation
+surface rather than a cleared finding: every state-changing entry point is
+protected by `nonReentrant`, and the adversarial token suite checks that a
+callback cannot re-enter it. I pin Slither 0.11.6, both reviewed medium finding
+IDs, the complete severity-count inventory, and a SHA-256 digest over all 25
+normalized findings. Any changed finding fails the audit. I still keep both
+medium findings in the matrix for independent review.
 
 The matrix is intentionally stricter than the current tests. A green test run
 means that the tested behavior held; it does not mean that the remaining

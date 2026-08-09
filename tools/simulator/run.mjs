@@ -6,6 +6,11 @@ import { fileURLToPath } from "node:url";
 import { ChallengeModel } from "../model/challenge-model.mjs";
 
 const scenarioDir = resolve(dirname(fileURLToPath(import.meta.url)), "scenarios");
+const REQUIRED_SCENARIOS = Object.freeze([
+  "happy-arbiter.json",
+  "lineage-replay.json",
+  "timeouts-pause.json",
+]);
 
 function summarize(snapshot) {
   return {
@@ -25,6 +30,8 @@ function loadScenario(path) {
   const scenario = JSON.parse(readFileSync(path, "utf8"));
   assert.equal(typeof scenario.name, "string", `${path}: name is required`);
   assert.ok(Array.isArray(scenario.steps) && scenario.steps.length > 0, `${path}: steps are required`);
+  assert.equal(scenario.finalOutstanding, 0, `${path}: an explicit zero-liability final oracle is required`);
+  assert.ok(scenario.finalStates && typeof scenario.finalStates === "object", `${path}: final states are required`);
   return scenario;
 }
 
@@ -67,11 +74,17 @@ export function runScenario(path, { includeTrace = false } = {}) {
 }
 
 function scenarioPaths() {
-  return readdirSync(scenarioDir).filter((file) => file.endsWith(".json")).sort().map((file) => join(scenarioDir, file));
+  const files = readdirSync(scenarioDir).filter((file) => file.endsWith(".json")).sort();
+  assert.deepEqual(files, REQUIRED_SCENARIOS, "simulator scenario inventory drifted");
+  return files.map((file) => join(scenarioDir, file));
 }
 
 const argument = process.argv[2];
 const includeTrace = process.argv.includes("--trace");
 const paths = argument && argument !== "--all" && argument !== "--trace" ? [resolve(argument)] : scenarioPaths();
 const results = paths.map((path) => runScenario(path, { includeTrace }));
+if (paths.length === REQUIRED_SCENARIOS.length) {
+  assert.deepEqual(results.map((result) => `${result.name}.json`), REQUIRED_SCENARIOS, "simulator scenario names drifted");
+  assert.ok(results.some((result) => result.rejected > 0), "simulator corpus exercised no rejection path");
+}
 console.log(JSON.stringify({ status: "ok", scenarios: results }, null, 2));

@@ -36,6 +36,36 @@
       "name": "arbitration deadline arithmetic remains representable under constructor bounds",
       "status": "PROVED",
       "test": "check_deadlineBoundary"
+    },
+    {
+      "id": "F-06",
+      "name": "challenge identifier delegates to the production identifier library",
+      "status": "PROVED",
+      "test": "check_challengeIdDelegates"
+    },
+    {
+      "id": "F-07",
+      "name": "entitlement identifier delegates to the production identifier library",
+      "status": "PROVED",
+      "test": "check_entitlementIdDelegates"
+    },
+    {
+      "id": "F-08",
+      "name": "acceptance permit type hash and digest delegate to the production permit library",
+      "status": "PROVED",
+      "test": "check_acceptancePermitDelegates"
+    },
+    {
+      "id": "F-09",
+      "name": "bounded open cancellation and refund conserve challenge and aggregate liability",
+      "status": "PROVED",
+      "test": "check_cancelRefundConservesLiability"
+    },
+    {
+      "id": "F-10",
+      "name": "release identifier binds the production chain and deployed escrow address",
+      "status": "PROVED",
+      "test": "check_releaseIdBindsChainAndEscrow"
     }
   ]
 }

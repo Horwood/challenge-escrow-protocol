@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.release-manifest/v1",
+  "title": "Challenge Escrow reproducible release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "manifestHash",
+    "release",
+    "compiler",
+    "runtime",
+    "productionSources",
+    "publicArtifacts",
+    "boundaries"
+  ],
+  "properties": {
+    "schema": { "const": "challenge-escrow.release-manifest/v1" },
+    "manifestHash": { "$ref": "#/$defs/hash" },
+    "release": { "$ref": "#/$defs/release" },
+    "compiler": { "$ref": "#/$defs/compiler" },
+    "runtime": { "$ref": "#/$defs/runtime" },
+    "productionSources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/file" }
+    },
+    "publicArtifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/file" }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["productionSourcesSha256", "publicArtifactsSha256"],
+      "properties": {
+        "productionSourcesSha256": { "$ref": "#/$defs/sha256" },
+        "publicArtifactsSha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  },
+  "$defs": {
+    "decimal": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 78
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{64}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._/-]+$",
+      "maxLength": 256
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/path" },
+        "bytes": { "$ref": "#/$defs/decimal" },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "protocolVersion",
+        "eventProtocolId",
+        "challengeSchemaId",
+        "evidenceSchemaId",
+        "conditionLanguageId",
+        "valueMode"
+      ],
+      "properties": {
+        "contract": { "const": "ChallengeEscrow" },
+        "protocolVersion": { "const": "challenge-escrow-protocol/v1" },
+        "eventProtocolId": { "const": "challenge-escrow-event/v1" },
+        "challengeSchemaId": { "const": "challenge-escrow.spec/v1" },
+        "evidenceSchemaId": { "const": "challenge-escrow.evidence/v1" },
+        "conditionLanguageId": { "const": "challenge-escrow.condition-language/v1" },
+        "valueMode": { "const": "TESTNET_NO_VALUE" }
+      }
+    },
+    "compiler": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "evmVersion", "optimizer", "metadataBytecodeHash"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^0\\.8\\.[0-9]+\\+commit\\.[0-9a-f]+$"
+        },
+        "evmVersion": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "optimizer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "runs"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "runs": { "$ref": "#/$defs/decimal" }
+          }
+        },
+        "metadataBytecodeHash": { "enum": ["none", "ipfs", "bzzr1"] }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactPath", "bytes", "sha256", "keccak256", "normalizedKeccak256", "immutableReferences", "immutableGroups", "abiEntries", "abiSha256"],
+      "properties": {
+        "artifactPath": { "const": "contracts/out/ChallengeEscrow.sol/ChallengeEscrow.json" },
+        "bytes": { "$ref": "#/$defs/decimal" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "keccak256": { "$ref": "#/$defs/hash" },
+        "normalizedKeccak256": { "$ref": "#/$defs/hash" },
+        "immutableReferences": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/immutableReference" }
+        },
+        "immutableGroups": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/immutableGroup" }
+        },
+        "abiEntries": { "$ref": "#/$defs/decimal" },
+        "abiSha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "immutableReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "bytes"],
+      "properties": {
+        "start": { "$ref": "#/$defs/decimal" },
+        "bytes": { "$ref": "#/$defs/decimal" }
+      }
+    },
+    "immutableGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "compilerId", "references"],
+      "properties": {
+        "name": { "enum": ["arbiter", "canonicalToken", "pauser", "releaseId", "resolver", "tokenDecimals"] },
+        "compilerId": { "$ref": "#/$defs/decimal" },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/immutableReference" }
+        }
+      }
+    }
+  }
+}

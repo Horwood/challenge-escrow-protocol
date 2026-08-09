@@ -195,6 +195,8 @@ const signatures: Readonly<Record<string, EventKind>> = {
   "0x4eb2d19e6c39001f1a1c8687743849b1cb3f03696602c47188e2470a3a3c62f5": "WinningsClaimed",
   "0x41a4d4cbbcdc2ac4f0849cd696792f27d785275ffb541a6526d1c438dd7c74e6": "PrincipalRefunded",
 };
+const MAX_UINT64 = (1n << 64n) - 1n;
+const MAX_UINT256 = (1n << 256n) - 1n;
 
 function fail(message: string): never {
   throw new Error(`event-decoder: ${message}`);
@@ -234,6 +236,12 @@ function uint(value: Hex): bigint {
   return BigInt(value);
 }
 
+function uint64(value: Hex, label: string): bigint {
+  const parsed = uint(value);
+  assert(parsed <= MAX_UINT64, `${label} exceeds uint64`);
+  return parsed;
+}
+
 function boundedUint(value: Hex, maximum: bigint, label: string): number {
   const parsed = uint(value);
   assert(parsed <= maximum, `${label} is outside its enum range`);
@@ -256,6 +264,10 @@ function topic(log: ProtocolLog, index: number, label: string): Hex {
   return bytes32(log.topics[index], `${label}.topics[${index}]`);
 }
 
+function challengeTopic(log: ProtocolLog, label: string): Hex {
+  return nonZeroBytes32(topic(log, 1, label), `${label}.challengeId`);
+}
+
 function side(value: Hex, label: string): Side {
   return boundedUint(value, 1n, label) === 0 ? "A" : "B";
 }
@@ -263,6 +275,22 @@ function side(value: Hex, label: string): Side {
 function outcome(value: Hex, label: string): Outcome {
   const parsed = boundedUint(value, 2n, label);
   return parsed === 0 ? "A" : parsed === 1 ? "B" : "VOID";
+}
+
+function reasonCode(value: Hex, assertedOutcome: Outcome, label: string): number {
+  return boundedUint(value, assertedOutcome === "VOID" ? 5n : 3n, label);
+}
+
+function nonZeroBytes32(value: Hex, label: string): Hex {
+  const parsed = bytes32(value, label);
+  assert(parsed !== `0x${"0".repeat(64)}`, `${label} must not be zero`);
+  return parsed;
+}
+
+function nonZeroAddress(value: Hex, label: string): Address {
+  const parsed = addressWord(value, label);
+  assert(parsed !== `0x${"0".repeat(40)}`, `${label} must not be zero`);
+  return parsed;
 }
 
 function decodeUtf8(data: Uint8Array, label: string): string {
@@ -273,12 +301,18 @@ function decodeUtf8(data: Uint8Array, label: string): string {
   }
 }
 
-function dynamicString(data: Hex, offsetWord: Hex, headBytes: number, label: string): string {
+function dynamicString(
+  data: Hex,
+  offsetWord: Hex,
+  headBytes: number,
+  expectedStart: number,
+  label: string,
+): { readonly value: string; readonly end: number } {
   const bytes = hexBytes(data, label);
   const offset = uint(offsetWord);
   assert(offset <= BigInt(Number.MAX_SAFE_INTEGER), `${label} offset exceeds safe local bounds`);
   const start = Number(offset);
-  assert(start >= headBytes && start % 32 === 0 && start + 32 <= bytes.length, `${label} offset is outside the ABI head`);
+  assert(start === expectedStart && start >= headBytes && start % 32 === 0 && start + 32 <= bytes.length, `${label} has a non-canonical ABI offset`);
   const length = uint(word(data, start / 32, label));
   assert(length <= BigInt(Number.MAX_SAFE_INTEGER), `${label} length exceeds safe local bounds`);
   const payloadLength = Number(length);
@@ -287,116 +321,190 @@ function dynamicString(data: Hex, offsetWord: Hex, headBytes: number, label: str
   assert(payloadStart + paddedLength <= bytes.length, `${label} payload is truncated`);
   const payload = bytes.slice(payloadStart, payloadStart + payloadLength);
   for (const padding of bytes.slice(payloadStart + payloadLength, payloadStart + paddedLength)) assert(padding === 0, `${label} has non-zero ABI padding`);
-  return decodeUtf8(payload, label);
+  return { value: decodeUtf8(payload, label), end: payloadStart + paddedLength };
 }
 
 function decodeReleaseDeclared(log: ProtocolLog): ReleaseDeclaredEvent {
   const label = "ReleaseDeclared";
   assert(log.topics.length === 2, `${label} has an unexpected topic count`);
   headWords(log.data, 12, label);
-  return {
+  const headBytes = 12 * 32;
+  const strings: string[] = [];
+  let tailEnd = headBytes;
+  for (const [index, field] of ["eventProtocolId", "protocolVersion", "challengeSchemaId", "evidenceSchemaId"].entries()) {
+    const decoded = dynamicString(log.data, word(log.data, index, label), headBytes, tailEnd, `${label}.${field}`);
+    strings.push(decoded.value);
+    tailEnd = decoded.end;
+  }
+  assert(tailEnd === hexBytes(log.data, label).length, `${label} has trailing ABI data`);
+  const event: ReleaseDeclaredEvent = {
     kind: "ReleaseDeclared",
     releaseId: topic(log, 1, label),
-    eventProtocolId: dynamicString(log.data, word(log.data, 0, label), 12 * 32, `${label}.eventProtocolId`),
-    protocolVersion: dynamicString(log.data, word(log.data, 1, label), 12 * 32, `${label}.protocolVersion`),
-    challengeSchemaId: dynamicString(log.data, word(log.data, 2, label), 12 * 32, `${label}.challengeSchemaId`),
-    evidenceSchemaId: dynamicString(log.data, word(log.data, 3, label), 12 * 32, `${label}.evidenceSchemaId`),
+    eventProtocolId: strings[0],
+    protocolVersion: strings[1],
+    challengeSchemaId: strings[2],
+    evidenceSchemaId: strings[3],
     chainId: uint(word(log.data, 4, label)),
-    escrowContract: addressWord(word(log.data, 5, label), `${label}.escrowContract`),
-    canonicalToken: addressWord(word(log.data, 6, label), `${label}.canonicalToken`),
-    tokenDecimals: boundedUint(word(log.data, 7, label), 255n, `${label}.tokenDecimals`),
+    escrowContract: nonZeroAddress(word(log.data, 5, label), `${label}.escrowContract`),
+    canonicalToken: nonZeroAddress(word(log.data, 6, label), `${label}.canonicalToken`),
+    tokenDecimals: boundedUint(word(log.data, 7, label), 18n, `${label}.tokenDecimals`),
     valueMode: boundedUint(word(log.data, 8, label), 0n, `${label}.valueMode`),
-    resolver: addressWord(word(log.data, 9, label), `${label}.resolver`),
-    arbiter: addressWord(word(log.data, 10, label), `${label}.arbiter`),
+    resolver: nonZeroAddress(word(log.data, 9, label), `${label}.resolver`),
+    arbiter: nonZeroAddress(word(log.data, 10, label), `${label}.arbiter`),
     initialPaused: bool(word(log.data, 11, label), `${label}.initialPaused`),
   };
+  assert(event.chainId > 0n, `${label}.chainId must be positive`);
+  assert(event.eventProtocolId === "challenge-escrow-event/v1", `${label}.eventProtocolId is unsupported`);
+  assert(event.protocolVersion === "challenge-escrow-protocol/v1", `${label}.protocolVersion is unsupported`);
+  assert(event.challengeSchemaId === "challenge-escrow.spec/v1", `${label}.challengeSchemaId is unsupported`);
+  assert(event.evidenceSchemaId === "challenge-escrow.evidence/v1", `${label}.evidenceSchemaId is unsupported`);
+  assert(event.escrowContract === log.address.toLowerCase(), `${label}.escrowContract differs from the log address`);
+  assert(new Set([event.escrowContract, event.canonicalToken, event.resolver, event.arbiter]).size === 4, `${label} contains overlapping roles`);
+  return event;
 }
 
 function decodePauseStatusChanged(log: ProtocolLog): PauseStatusChangedEvent {
   const label = "PauseStatusChanged";
   assert(log.topics.length === 1, `${label} has an unexpected topic count`);
   words(log.data, 3, label);
-  return { kind: "PauseStatusChanged", changedBy: addressWord(word(log.data, 0, label), `${label}.changedBy`), previousPaused: bool(word(log.data, 1, label), `${label}.previousPaused`), newPaused: bool(word(log.data, 2, label), `${label}.newPaused`) };
+  const event: PauseStatusChangedEvent = { kind: "PauseStatusChanged", changedBy: nonZeroAddress(word(log.data, 0, label), `${label}.changedBy`), previousPaused: bool(word(log.data, 1, label), `${label}.previousPaused`), newPaused: bool(word(log.data, 2, label), `${label}.newPaused`) };
+  assert(event.previousPaused !== event.newPaused, `${label} did not change pause status`);
+  return event;
 }
 
 function decodeChallengeCreated(log: ProtocolLog): ChallengeCreatedEvent {
   const label = "ChallengeCreated";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 15, label);
-  return { kind: "ChallengeCreated", challengeId: topic(log, 1, label), specHash: bytes32(word(log.data, 0, label), `${label}.specHash`), instanceNonce: bytes32(word(log.data, 1, label), `${label}.instanceNonce`), challengerWallet: addressWord(topic(log, 2, label), `${label}.challengerWallet`), challengerSide: side(word(log.data, 2, label), `${label}.challengerSide`), stakeAmount: uint(word(log.data, 3, label)), acceptanceNonce: uint(word(log.data, 4, label)), acceptanceDeadline: uint(word(log.data, 5, label)), observationTime: uint(word(log.data, 6, label)), sourceCorrectionCutoff: uint(word(log.data, 7, label)), proposalDeadline: uint(word(log.data, 8, label)), disputeWindowSeconds: uint(word(log.data, 9, label)), arbitrationWindowSeconds: uint(word(log.data, 10, label)), timeoutVoidAt: uint(word(log.data, 11, label)), executionHash: bytes32(word(log.data, 12, label), `${label}.executionHash`), termsHash: bytes32(word(log.data, 13, label), `${label}.termsHash`), createdAt: uint(word(log.data, 14, label)) };
+  const event: ChallengeCreatedEvent = { kind: "ChallengeCreated", challengeId: challengeTopic(log, label), specHash: nonZeroBytes32(word(log.data, 0, label), `${label}.specHash`), instanceNonce: nonZeroBytes32(word(log.data, 1, label), `${label}.instanceNonce`), challengerWallet: nonZeroAddress(topic(log, 2, label), `${label}.challengerWallet`), challengerSide: side(word(log.data, 2, label), `${label}.challengerSide`), stakeAmount: uint(word(log.data, 3, label)), acceptanceNonce: uint(word(log.data, 4, label)), acceptanceDeadline: uint64(word(log.data, 5, label), `${label}.acceptanceDeadline`), observationTime: uint64(word(log.data, 6, label), `${label}.observationTime`), sourceCorrectionCutoff: uint64(word(log.data, 7, label), `${label}.sourceCorrectionCutoff`), proposalDeadline: uint64(word(log.data, 8, label), `${label}.proposalDeadline`), disputeWindowSeconds: uint64(word(log.data, 9, label), `${label}.disputeWindowSeconds`), arbitrationWindowSeconds: uint64(word(log.data, 10, label), `${label}.arbitrationWindowSeconds`), timeoutVoidAt: uint64(word(log.data, 11, label), `${label}.timeoutVoidAt`), executionHash: nonZeroBytes32(word(log.data, 12, label), `${label}.executionHash`), termsHash: nonZeroBytes32(word(log.data, 13, label), `${label}.termsHash`), createdAt: uint64(word(log.data, 14, label), `${label}.createdAt`) };
+  assert(event.stakeAmount > 0n && event.stakeAmount <= MAX_UINT256 / 2n, `${label}.stakeAmount is outside the production range`);
+  assert(event.acceptanceNonce === 0n, `${label}.acceptanceNonce must start at zero`);
+  assert(event.createdAt < event.acceptanceDeadline && event.acceptanceDeadline < event.observationTime && event.observationTime < event.sourceCorrectionCutoff && event.sourceCorrectionCutoff < event.proposalDeadline, `${label} deadline ordering is invalid`);
+  assert(event.disputeWindowSeconds > 0n && event.arbitrationWindowSeconds > 0n, `${label} windows must be positive`);
+  assert(event.sourceCorrectionCutoff < event.observationTime + event.disputeWindowSeconds, `${label} correction cutoff exceeds the dispute boundary`);
+  assert(event.proposalDeadline + event.disputeWindowSeconds + event.arbitrationWindowSeconds <= event.timeoutVoidAt && event.sourceCorrectionCutoff + event.arbitrationWindowSeconds <= event.timeoutVoidAt, `${label} timeout does not cover every authority path`);
+  return event;
 }
 
 function decodeAcceptanceNonceAdvanced(log: ProtocolLog): AcceptanceNonceAdvancedEvent {
   const label = "AcceptanceNonceAdvanced";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 2, label);
-  return { kind: "AcceptanceNonceAdvanced", challengeId: topic(log, 1, label), challengerWallet: addressWord(topic(log, 2, label), `${label}.challengerWallet`), previousNonce: uint(word(log.data, 0, label)), newNonce: uint(word(log.data, 1, label)) };
+  const event: AcceptanceNonceAdvancedEvent = { kind: "AcceptanceNonceAdvanced", challengeId: challengeTopic(log, label), challengerWallet: nonZeroAddress(topic(log, 2, label), `${label}.challengerWallet`), previousNonce: uint(word(log.data, 0, label)), newNonce: uint(word(log.data, 1, label)) };
+  assert(event.newNonce === event.previousNonce + 1n, `${label} nonce did not advance by one`);
+  return event;
 }
 
 function decodeChallengeAccepted(log: ProtocolLog): ChallengeAcceptedEvent {
   const label = "ChallengeAccepted";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 4, label);
-  return { kind: "ChallengeAccepted", challengeId: topic(log, 1, label), acceptingWallet: addressWord(topic(log, 2, label), `${label}.acceptingWallet`), acceptingSide: side(word(log.data, 0, label), `${label}.acceptingSide`), consumedNonce: uint(word(log.data, 1, label)), permitExpiresAt: uint(word(log.data, 2, label)), stakeAmount: uint(word(log.data, 3, label)) };
+  const event: ChallengeAcceptedEvent = { kind: "ChallengeAccepted", challengeId: challengeTopic(log, label), acceptingWallet: nonZeroAddress(topic(log, 2, label), `${label}.acceptingWallet`), acceptingSide: side(word(log.data, 0, label), `${label}.acceptingSide`), consumedNonce: uint(word(log.data, 1, label)), permitExpiresAt: uint64(word(log.data, 2, label), `${label}.permitExpiresAt`), stakeAmount: uint(word(log.data, 3, label)) };
+  assert(event.permitExpiresAt > 0n && event.stakeAmount > 0n, `${label} permit expiry and stake must be positive`);
+  return event;
 }
 
 function decodeChallengeCancelled(log: ProtocolLog): ChallengeCancelledEvent {
   const label = "ChallengeCancelled";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 1, label);
-  return { kind: "ChallengeCancelled", challengeId: topic(log, 1, label), challengerWallet: addressWord(topic(log, 2, label), `${label}.challengerWallet`), refundAmount: uint(word(log.data, 0, label)) };
+  const event: ChallengeCancelledEvent = { kind: "ChallengeCancelled", challengeId: challengeTopic(log, label), challengerWallet: nonZeroAddress(topic(log, 2, label), `${label}.challengerWallet`), refundAmount: uint(word(log.data, 0, label)) };
+  assert(event.refundAmount > 0n, `${label}.refundAmount must be positive`);
+  return event;
 }
 
 function decodeChallengeExpired(log: ProtocolLog): ChallengeExpiredEvent {
   const label = "ChallengeExpired";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 2, label);
-  return { kind: "ChallengeExpired", challengeId: topic(log, 1, label), materializedBy: addressWord(word(log.data, 0, label), `${label}.materializedBy`), challengerWallet: addressWord(topic(log, 2, label), `${label}.challengerWallet`), refundAmount: uint(word(log.data, 1, label)) };
+  const event: ChallengeExpiredEvent = { kind: "ChallengeExpired", challengeId: challengeTopic(log, label), materializedBy: nonZeroAddress(word(log.data, 0, label), `${label}.materializedBy`), challengerWallet: nonZeroAddress(topic(log, 2, label), `${label}.challengerWallet`), refundAmount: uint(word(log.data, 1, label)) };
+  assert(event.refundAmount > 0n, `${label}.refundAmount must be positive`);
+  return event;
 }
 
 function decodeOutcomeProposed(log: ProtocolLog): OutcomeProposedEvent {
   const label = "OutcomeProposed";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 4, label);
-  return { kind: "OutcomeProposed", challengeId: topic(log, 1, label), resolver: addressWord(topic(log, 2, label), `${label}.resolver`), assertedOutcome: outcome(word(log.data, 0, label), `${label}.assertedOutcome`), reasonCode: boundedUint(word(log.data, 1, label), 5n, `${label}.reasonCode`), evidenceHash: bytes32(word(log.data, 2, label), `${label}.evidenceHash`), disputeDeadline: uint(word(log.data, 3, label)) };
+  const assertedOutcome = outcome(word(log.data, 0, label), `${label}.assertedOutcome`);
+  return { kind: "OutcomeProposed", challengeId: challengeTopic(log, label), resolver: nonZeroAddress(topic(log, 2, label), `${label}.resolver`), assertedOutcome, reasonCode: reasonCode(word(log.data, 1, label), assertedOutcome, `${label}.reasonCode`), evidenceHash: nonZeroBytes32(word(log.data, 2, label), `${label}.evidenceHash`), disputeDeadline: uint64(word(log.data, 3, label), `${label}.disputeDeadline`) };
 }
 
 function decodeOutcomeDisputed(log: ProtocolLog): OutcomeDisputedEvent {
   const label = "OutcomeDisputed";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 6, label);
-  return { kind: "OutcomeDisputed", challengeId: topic(log, 1, label), disputingWallet: addressWord(topic(log, 2, label), `${label}.disputingWallet`), assertedOutcome: outcome(word(log.data, 0, label), `${label}.assertedOutcome`), reasonCode: boundedUint(word(log.data, 1, label), 5n, `${label}.reasonCode`), evidenceHash: bytes32(word(log.data, 2, label), `${label}.evidenceHash`), parentEvidenceHash: bytes32(word(log.data, 3, label), `${label}.parentEvidenceHash`), arbitrationStart: uint(word(log.data, 4, label)), arbitrationDeadline: uint(word(log.data, 5, label)) };
+  const assertedOutcome = outcome(word(log.data, 0, label), `${label}.assertedOutcome`);
+  const event: OutcomeDisputedEvent = { kind: "OutcomeDisputed", challengeId: challengeTopic(log, label), disputingWallet: nonZeroAddress(topic(log, 2, label), `${label}.disputingWallet`), assertedOutcome, reasonCode: reasonCode(word(log.data, 1, label), assertedOutcome, `${label}.reasonCode`), evidenceHash: nonZeroBytes32(word(log.data, 2, label), `${label}.evidenceHash`), parentEvidenceHash: nonZeroBytes32(word(log.data, 3, label), `${label}.parentEvidenceHash`), arbitrationStart: uint64(word(log.data, 4, label), `${label}.arbitrationStart`), arbitrationDeadline: uint64(word(log.data, 5, label), `${label}.arbitrationDeadline`) };
+  assert(event.arbitrationStart < event.arbitrationDeadline, `${label} has an invalid arbitration interval`);
+  return event;
 }
 
 function decodeChallengeResolved(log: ProtocolLog): ChallengeResolvedEvent {
   const label = "ChallengeResolved";
   assert(log.topics.length === 4, `${label} has an unexpected topic count`);
   words(log.data, 6, label);
-  return { kind: "ChallengeResolved", challengeId: topic(log, 1, label), finalizedBy: addressWord(topic(log, 2, label), `${label}.finalizedBy`), winnerWallet: addressWord(topic(log, 3, label), `${label}.winnerWallet`), finalOutcome: outcome(word(log.data, 0, label), `${label}.finalOutcome`), reasonCode: boundedUint(word(log.data, 1, label), 5n, `${label}.reasonCode`), finalEvidenceHash: bytes32(word(log.data, 2, label), `${label}.finalEvidenceHash`), parentEvidenceHash: bytes32(word(log.data, 3, label), `${label}.parentEvidenceHash`), resolutionPath: boundedUint(word(log.data, 4, label), 1n, `${label}.resolutionPath`), claimAmount: uint(word(log.data, 5, label)) };
+  const finalOutcome = outcome(word(log.data, 0, label), `${label}.finalOutcome`);
+  assert(finalOutcome !== "VOID", `${label} cannot carry a VOID outcome`);
+  const resolutionPath = boundedUint(word(log.data, 4, label), 1n, `${label}.resolutionPath`);
+  const parentEvidenceHash = bytes32(word(log.data, 3, label), `${label}.parentEvidenceHash`);
+  const zeroHash = `0x${"0".repeat(64)}`;
+  assert(
+    resolutionPath === 0 ? parentEvidenceHash === zeroHash : parentEvidenceHash !== zeroHash,
+    `${label}.parentEvidenceHash does not match its resolution path`,
+  );
+  const claimAmount = uint(word(log.data, 5, label));
+  assert(claimAmount > 0n, `${label}.claimAmount must be positive`);
+  return { kind: "ChallengeResolved", challengeId: challengeTopic(log, label), finalizedBy: nonZeroAddress(topic(log, 2, label), `${label}.finalizedBy`), winnerWallet: nonZeroAddress(topic(log, 3, label), `${label}.winnerWallet`), finalOutcome, reasonCode: reasonCode(word(log.data, 1, label), finalOutcome, `${label}.reasonCode`), finalEvidenceHash: nonZeroBytes32(word(log.data, 2, label), `${label}.finalEvidenceHash`), parentEvidenceHash, resolutionPath, claimAmount };
 }
 
 function decodeChallengeVoided(log: ProtocolLog): ChallengeVoidedEvent {
   const label = "ChallengeVoided";
   assert(log.topics.length === 3, `${label} has an unexpected topic count`);
   words(log.data, 5, label);
-  return { kind: "ChallengeVoided", challengeId: topic(log, 1, label), materializedBy: addressWord(topic(log, 2, label), `${label}.materializedBy`), voidReason: boundedUint(word(log.data, 0, label), 5n, `${label}.voidReason`), finalEvidenceHash: bytes32(word(log.data, 1, label), `${label}.finalEvidenceHash`), parentEvidenceHash: bytes32(word(log.data, 2, label), `${label}.parentEvidenceHash`), voidPath: boundedUint(word(log.data, 3, label), 3n, `${label}.voidPath`), refundAmountEach: uint(word(log.data, 4, label)) };
+  const voidPath = boundedUint(word(log.data, 3, label), 3n, `${label}.voidPath`);
+  const timeoutPath = voidPath >= 2;
+  const voidReason = boundedUint(word(log.data, 0, label), timeoutPath ? 1n : 5n, `${label}.voidReason`);
+  const finalEvidenceHash = bytes32(word(log.data, 1, label), `${label}.finalEvidenceHash`);
+  const parentEvidenceHash = bytes32(word(log.data, 2, label), `${label}.parentEvidenceHash`);
+  const zeroHash = `0x${"0".repeat(64)}`;
+  if (timeoutPath) {
+    assert(finalEvidenceHash === zeroHash && parentEvidenceHash === zeroHash, `${label} timeout path must not carry evidence hashes`);
+    assert(voidReason === voidPath - 2, `${label} timeout reason does not match its path`);
+  } else {
+    assert(finalEvidenceHash !== zeroHash, `${label} evidence path requires a final evidence hash`);
+    assert(
+      voidPath === 0 ? parentEvidenceHash === zeroHash : parentEvidenceHash !== zeroHash,
+      `${label}.parentEvidenceHash does not match its evidence path`,
+    );
+  }
+  const refundAmountEach = uint(word(log.data, 4, label));
+  assert(refundAmountEach > 0n, `${label}.refundAmountEach must be positive`);
+  return { kind: "ChallengeVoided", challengeId: challengeTopic(log, label), materializedBy: nonZeroAddress(topic(log, 2, label), `${label}.materializedBy`), voidReason, finalEvidenceHash, parentEvidenceHash, voidPath, refundAmountEach };
 }
 
 function decodeWinningsClaimed(log: ProtocolLog): WinningsClaimedEvent {
   const label = "WinningsClaimed";
   assert(log.topics.length === 4, `${label} has an unexpected topic count`);
   words(log.data, 1, label);
-  return { kind: "WinningsClaimed", challengeId: topic(log, 1, label), entitlementId: topic(log, 2, label), wallet: addressWord(topic(log, 3, label), `${label}.wallet`), amount: uint(word(log.data, 0, label)) };
+  const event: WinningsClaimedEvent = { kind: "WinningsClaimed", challengeId: challengeTopic(log, label), entitlementId: nonZeroBytes32(topic(log, 2, label), `${label}.entitlementId`), wallet: nonZeroAddress(topic(log, 3, label), `${label}.wallet`), amount: uint(word(log.data, 0, label)) };
+  assert(event.amount > 0n, `${label}.amount must be positive`);
+  return event;
 }
 
 function decodePrincipalRefunded(log: ProtocolLog): PrincipalRefundedEvent {
   const label = "PrincipalRefunded";
   assert(log.topics.length === 4, `${label} has an unexpected topic count`);
   words(log.data, 2, label);
-  return { kind: "PrincipalRefunded", challengeId: topic(log, 1, label), entitlementId: topic(log, 2, label), wallet: addressWord(topic(log, 3, label), `${label}.wallet`), originState: boundedUint(word(log.data, 0, label), 8n, `${label}.originState`), amount: uint(word(log.data, 1, label)) };
+  const originState = boundedUint(word(log.data, 0, label), 8n, `${label}.originState`);
+  assert(originState === 4 || originState === 5 || originState === 8, `${label}.originState is not refundable`);
+  const amount = uint(word(log.data, 1, label));
+  assert(amount > 0n, `${label}.amount must be positive`);
+  return { kind: "PrincipalRefunded", challengeId: challengeTopic(log, label), entitlementId: nonZeroBytes32(topic(log, 2, label), `${label}.entitlementId`), wallet: nonZeroAddress(topic(log, 3, label), `${label}.wallet`), originState, amount };
 }
 
 export function decodeProtocolEvent(log: ProtocolLog): DecodedProtocolEvent {
+  assert(log.topics.length > 0, "event signature topic is missing");
   const signature = bytes32(log.topics[0], "event signature");
   const kind = signatures[signature];
   if (!kind) fail(`unknown event signature ${signature}`);

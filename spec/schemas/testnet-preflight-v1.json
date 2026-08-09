@@ -9,11 +9,18 @@
     "status",
     "network",
     "chainId",
+    "snapshotBlock",
+    "snapshotBlockHash",
+    "snapshotParentHash",
     "deploymentBlock",
     "escrowAddress",
     "codeBytes",
+    "normalizedRuntimeKeccak256",
+    "immutableReferenceCount",
+    "immutableGroupCount",
     "tokenCodeBytes",
     "valueMode",
+    "current",
     "release",
     "checkedRpcMethods"
   ],
@@ -22,18 +29,25 @@
     "status": { "const": "ok" },
     "network": { "enum": ["sepolia", "base-sepolia"] },
     "chainId": { "$ref": "#/$defs/decimal" },
+    "snapshotBlock": { "$ref": "#/$defs/decimal" },
+    "snapshotBlockHash": { "$ref": "#/$defs/hash" },
+    "snapshotParentHash": { "$ref": "#/$defs/hash" },
     "deploymentBlock": { "$ref": "#/$defs/decimal" },
     "escrowAddress": { "$ref": "#/$defs/address" },
     "codeBytes": { "$ref": "#/$defs/positiveDecimal" },
+    "normalizedRuntimeKeccak256": { "$ref": "#/$defs/hash" },
+    "immutableReferenceCount": { "$ref": "#/$defs/positiveDecimal" },
+    "immutableGroupCount": { "$ref": "#/$defs/positiveDecimal" },
     "tokenCodeBytes": { "$ref": "#/$defs/positiveDecimal" },
     "valueMode": { "const": "TESTNET_NO_VALUE" },
+    "current": { "$ref": "#/$defs/current" },
     "release": { "$ref": "#/$defs/release" },
     "checkedRpcMethods": {
       "type": "array",
-      "minItems": 4,
-      "maxItems": 4,
+      "minItems": 6,
+      "maxItems": 6,
       "uniqueItems": true,
-      "items": { "enum": ["eth_chainId", "eth_getCode", "eth_call", "eth_getLogs"] }
+      "items": { "enum": ["eth_chainId", "eth_blockNumber", "eth_getBlockByNumber", "eth_getCode", "eth_call", "eth_getLogs"] }
     }
   },
   "$defs": {
@@ -54,6 +68,16 @@
     "hash": {
       "type": "string",
       "pattern": "^0x[0-9a-fA-F]{64}$"
+    },
+    "current": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pauser", "paused", "totalOutstandingLiability"],
+      "properties": {
+        "pauser": { "$ref": "#/$defs/address" },
+        "paused": { "type": "boolean" },
+        "totalOutstandingLiability": { "$ref": "#/$defs/decimal" }
+      }
     },
     "release": {
       "type": "object",

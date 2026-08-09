@@ -1,0 +1,152 @@
+{
+  "schema": "challenge-escrow.authority-policy-vector/v1",
+  "policy": {
+    "schema": "challenge-escrow.authority-policy/v1",
+    "policyId": "reference-testnet-operations",
+    "policyHash": "0xe6192bcb1ee9b0e3ceebcb274c854b84740481623de6fba7c7a9a4c6a6b974ca",
+    "lineage": {
+      "epoch": "3",
+      "predecessorPolicyHash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "announcedAt": "1786213600",
+      "validFrom": "1786300000",
+      "validUntil": "1791484000"
+    },
+    "roles": [
+      {
+        "role": "arbiter",
+        "threshold": "2",
+        "members": [
+          {
+            "fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "custody": "hardware"
+          },
+          {
+            "fingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "custody": "institutional"
+          },
+          {
+            "fingerprint": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "custody": "offline-recovery"
+          }
+        ]
+      },
+      {
+        "role": "pauser",
+        "threshold": "2",
+        "members": [
+          {
+            "fingerprint": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "custody": "hardware"
+          },
+          {
+            "fingerprint": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+            "custody": "offline-recovery"
+          }
+        ]
+      },
+      {
+        "role": "resolver",
+        "threshold": "2",
+        "members": [
+          {
+            "fingerprint": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+            "custody": "hardware"
+          },
+          {
+            "fingerprint": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+            "custody": "institutional"
+          },
+          {
+            "fingerprint": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+            "custody": "offline-recovery"
+          }
+        ]
+      }
+    ],
+    "forbiddenCapabilities": [
+      "delegatecall",
+      "owner-withdrawal",
+      "payout-redirection",
+      "proxy-upgrade",
+      "token-rescue"
+    ],
+    "rotation": {
+      "minimumDelaySeconds": "86400",
+      "maximumEpochSeconds": "7776000"
+    }
+  },
+  "verificationContext": {
+    "observedAt": "1786386400",
+    "expectedEpoch": "3",
+    "expectedPredecessorPolicyHash": "0x1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "expected": {
+    "policyHash": "0xe6192bcb1ee9b0e3ceebcb274c854b84740481623de6fba7c7a9a4c6a6b974ca",
+    "incidents": {
+      "schema": "challenge-escrow.authority-incidents/v1",
+      "policyHash": "0xe6192bcb1ee9b0e3ceebcb274c854b84740481623de6fba7c7a9a4c6a6b974ca",
+      "scenarios": [
+        {
+          "id": "member-loss",
+          "role": "resolver",
+          "unavailable": [
+            "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+          ],
+          "remaining": "2",
+          "threshold": "2",
+          "quorumAvailable": true,
+          "decision": "continue-with-reduced-margin",
+          "requiredAction": "rotate-epoch-before-restoring-capacity"
+        },
+        {
+          "id": "signer-compromise",
+          "role": "arbiter",
+          "compromised": [
+            "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          ],
+          "decision": "fail-closed-rotate-epoch",
+          "blockedAction": "arbitration-under-current-epoch"
+        },
+        {
+          "id": "quorum-loss",
+          "role": "resolver",
+          "unavailable": [
+            "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+            "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+          ],
+          "remaining": "1",
+          "threshold": "2",
+          "quorumAvailable": false,
+          "decision": "fail-closed",
+          "preservedExit": "contract-timeout-to-void"
+        },
+        {
+          "id": "pauser-loss",
+          "role": "pauser",
+          "unavailable": [
+            "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+          ],
+          "remaining": "0",
+          "threshold": "2",
+          "quorumAvailable": false,
+          "decision": "degraded-exit-only",
+          "blockedAction": "new-pause-transition",
+          "preservedActions": [
+            "claims",
+            "disputes",
+            "refunds",
+            "timeouts"
+          ]
+        },
+        {
+          "id": "stale-policy-replay",
+          "presentedEpoch": "2",
+          "expectedEpoch": "3",
+          "decision": "rejected",
+          "reason": "epoch-and-predecessor-must-match"
+        }
+      ]
+    }
+  }
+}

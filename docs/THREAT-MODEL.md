@@ -22,8 +22,12 @@ from the assumptions I leave with people, tokens, and the chain.
 | Resolver to participants | Wrong or unavailable proposal | I use an evidence hash, dispute window, separate arbiter, and proposal timeout |
 | Arbiter to participants | Wrong or unavailable decision | I use an immutable role, evidence lineage, and arbitration timeout to `VOID` |
 | Pauser to participants | Interested party blocks progress | I separate the role and keep disputes and safe exits available during pause |
-| Events to indexer | Reorg, omission, duplication | I use ordered event identity, rollback and replay, and direct chain reconciliation |
-| RPC to testnet preflight | Wrong chain, credential leakage, write-method misuse, fake release tuple | I allowlist Sepolia/Base Sepolia, require HTTPS and an explicit deployment block, call only read methods, and reconcile `ReleaseDeclared` with immutable getters |
+| Events to indexer | Reorg, omission, duplication, malformed semantics, concurrent sync | I use serialized atomic rollback and replay, header anchoring, bounded ingestion, strict event grammar, frozen reconciliation snapshots, and direct chain reconciliation |
+| RPC providers to observer | Fork, stale or moving head, outage, false finality | I require an explicit N-provider threshold over number, hash, and parent hash, recheck each provider's latest header, and preserve dissent and outages |
+| Observer run to reviewer | Hidden log, state, anomaly, or release drift | I commit a closed portable receipt and reproduce it in JavaScript and Python |
+| RPC to testnet preflight | Wrong chain, credential leakage, mixed snapshots, write-method misuse, fake release tuple or split immutable values | I allowlist Sepolia/Base Sepolia, require HTTPS and the exact deployment block, pin code and getter reads to one canonical block hash, recheck its header, anchor the release log, call only read methods, match the normalized runtime, require each immutable group to agree internally, and reconcile it with `ReleaseDeclared` and getters |
+| Operational policy to authority role | Shared controller, weak threshold, instant or stale epoch, excess capability | I use controller fingerprints, cross-role separation, strict-majority thresholds, a hashed announcement delay, predecessor lineage, and an exact forbidden-power set |
+| Reviewed source to release artifact | Compiler, ABI, runtime, schema, or vector drift | I bind sorted file bytes and compiler output in an independently rebuilt release manifest |
 
 ## Authority I deliberately omit
 
@@ -44,4 +48,30 @@ batching dependency, or automatic oracle.
 - I accept that two different addresses may have the same controller.
 - I accept chain censorship, gas unavailability, deep reorganization, and
   consensus failure as external risks.
+- I accept that endpoint-neutral provider IDs do not prove provider
+  independence or honest infrastructure.
+- I accept that one HTTPS RPC hostname still relies on local DNS, TLS, and
+  network routing. URL validation does not prove that the hostname resolves to
+  a public or independent service.
+- I accept that head quorum does not prove log completeness. A malicious
+  provider can omit events unless the caller compares log payloads or verifies
+  them against stronger chain evidence.
+- I accept that the transport-neutral direct-state client cannot prove that a
+  caller-supplied adapter honored its requested block tag. I require the tag,
+  bound all returned fields, and use observer header reconciliation when that
+  adapter trust is not sufficient.
+- I accept that a quorum receipt proves direct ancestry only for adjacent tag
+  heads. When `latest`, `safe`, and `finalized` are separated by several blocks,
+  the receipt lacks the intervening headers and proves ordering rather than a
+  complete ancestor path.
+- I accept that the normalized-runtime check trusts the immutable layout in my
+  checked-in compiler artifact. It binds live substitutions to getters but does
+  not establish compiler-binary provenance.
+- I accept that the audit environment is not fully hermetic. I reject analyzer
+  version drift, but I do not vendor the analyzer binaries, Z3 package, Halmos
+  transitive distributions, or the two remote Semgrep rule packs. My checked-in
+  Semgrep rules and release manifest remain reproducible; external package and
+  rule provenance still needs an independent build environment.
+- I accept that the authority policy is a static model until real independent
+  operators complete a valueless ceremony and incident exercise.
 - I have not received an independent audit for this public extraction.

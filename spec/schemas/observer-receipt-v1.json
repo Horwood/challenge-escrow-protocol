@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "challenge-escrow.observer-receipt/v1",
+  "title": "Challenge Escrow observer receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "release", "head", "quorum", "commitments", "counts"],
+  "properties": {
+    "schema": { "const": "challenge-escrow.observer-receipt/v1" },
+    "release": { "$ref": "#/$defs/release" },
+    "head": { "$ref": "#/$defs/receiptHead" },
+    "quorum": { "$ref": "#/$defs/quorum" },
+    "commitments": { "$ref": "#/$defs/commitments" },
+    "counts": { "$ref": "#/$defs/counts" }
+  },
+  "$defs": {
+    "decimal": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 78
+    },
+    "uint64Decimal": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "maxLength": 20
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{64}$"
+    },
+    "address": {
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "providerId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["number", "hash", "parentHash"],
+      "properties": {
+        "number": { "$ref": "#/$defs/uint64Decimal" },
+        "hash": { "$ref": "#/$defs/hash" },
+        "parentHash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "blockOrNull": {
+      "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/block" }]
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chainId", "escrowContract", "releaseId", "eventProtocolId", "protocolVersion"],
+      "properties": {
+        "chainId": { "$ref": "#/$defs/decimal" },
+        "escrowContract": { "$ref": "#/$defs/address" },
+        "releaseId": { "$ref": "#/$defs/hash" },
+        "eventProtocolId": { "const": "challenge-escrow-event/v1" },
+        "protocolVersion": { "const": "challenge-escrow-protocol/v1" }
+      }
+    },
+    "receiptHead": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["number", "hash", "parentHash", "finality"],
+      "properties": {
+        "number": { "$ref": "#/$defs/uint64Decimal" },
+        "hash": { "$ref": "#/$defs/hash" },
+        "parentHash": { "$ref": "#/$defs/hash" },
+        "finality": { "enum": ["latest", "safe", "finalized", "unknown"] }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerId", "status", "latest", "safe", "finalized", "error"],
+      "properties": {
+        "providerId": { "$ref": "#/$defs/providerId" },
+        "status": { "enum": ["available", "unavailable"] },
+        "latest": { "$ref": "#/$defs/blockOrNull" },
+        "safe": { "$ref": "#/$defs/blockOrNull" },
+        "finalized": { "$ref": "#/$defs/blockOrNull" },
+        "error": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "string",
+              "enum": [
+                "FINALITY_TAGS_UNAVAILABLE",
+                "MALFORMED_BLOCK_HEADER",
+                "LATEST_NUMBER_MISMATCH",
+                "FINALITY_ORDER_INVALID",
+                "FINALITY_CHAIN_INVALID",
+                "LATEST_BLOCK_UNAVAILABLE",
+                "LATEST_BLOCK_CHANGED",
+                "RPC_READ_FAILED"
+              ]
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "available" } } },
+          "then": {
+            "properties": {
+              "latest": { "$ref": "#/$defs/block" },
+              "safe": { "$ref": "#/$defs/block" },
+              "finalized": { "$ref": "#/$defs/block" },
+              "error": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "unavailable" } } },
+          "then": {
+            "properties": {
+              "latest": { "type": "null" },
+              "safe": { "type": "null" },
+              "finalized": { "type": "null" },
+              "error": {
+                "type": "string",
+                "enum": [
+                  "FINALITY_TAGS_UNAVAILABLE",
+                  "MALFORMED_BLOCK_HEADER",
+                  "LATEST_NUMBER_MISMATCH",
+                  "FINALITY_ORDER_INVALID",
+                  "FINALITY_CHAIN_INVALID",
+                  "LATEST_BLOCK_UNAVAILABLE",
+                  "LATEST_BLOCK_CHANGED",
+                  "RPC_READ_FAILED"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "providerIds": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/providerId" }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["block", "providers"],
+      "properties": {
+        "block": { "$ref": "#/$defs/block" },
+        "providers": {
+          "allOf": [
+            { "$ref": "#/$defs/providerIds" },
+            { "minItems": 1 }
+          ]
+        }
+      }
+    },
+    "quorumHead": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "agreed", "supporters", "dissenters", "unavailable", "groups"],
+      "properties": {
+        "status": { "enum": ["agree", "conflicted", "unavailable"] },
+        "agreed": { "$ref": "#/$defs/blockOrNull" },
+        "supporters": { "$ref": "#/$defs/providerIds" },
+        "dissenters": { "$ref": "#/$defs/providerIds" },
+        "unavailable": { "$ref": "#/$defs/providerIds" },
+        "groups": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/$defs/group" }
+        }
+      }
+    },
+    "quorum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "status", "threshold", "compared", "heads", "providers"],
+      "properties": {
+        "schema": { "const": "challenge-escrow.rpc-quorum/v1" },
+        "status": { "enum": ["agree", "conflicted", "unavailable"] },
+        "threshold": { "$ref": "#/$defs/decimal" },
+        "compared": {
+          "const": ["latest", "safe", "finalized"]
+        },
+        "heads": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["latest", "safe", "finalized"],
+          "properties": {
+            "latest": { "$ref": "#/$defs/quorumHead" },
+            "safe": { "$ref": "#/$defs/quorumHead" },
+            "finalized": { "$ref": "#/$defs/quorumHead" }
+          }
+        },
+        "providers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 16,
+          "items": { "$ref": "#/$defs/provider" }
+        }
+      }
+    },
+    "commitments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalLogs", "projectedState", "anomalies"],
+      "properties": {
+        "canonicalLogs": { "$ref": "#/$defs/sha256" },
+        "projectedState": { "$ref": "#/$defs/sha256" },
+        "anomalies": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["logs", "challenges", "anomalies"],
+      "properties": {
+        "logs": { "$ref": "#/$defs/decimal" },
+        "challenges": { "$ref": "#/$defs/decimal" },
+        "anomalies": { "$ref": "#/$defs/decimal" }
+      }
+    }
+  }
+}

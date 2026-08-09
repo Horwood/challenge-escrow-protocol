@@ -366,6 +366,10 @@ for (let sequence = 0; sequence < SEQUENCES; sequence += 1) {
   mergeCounts(randomCounts, result.counts);
   rejected += result.rejected;
 }
+for (const transition of REQUIRED_TRANSITIONS) {
+  assert.ok(randomCounts[transition] > 0, `random corpus did not reach ${transition}`);
+}
+assert.ok(rejected > 0, "random corpus exercised no rejection boundary");
 
 console.log(JSON.stringify({
   status: "ok",

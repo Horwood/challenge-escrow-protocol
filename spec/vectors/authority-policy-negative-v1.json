@@ -1,0 +1,24 @@
+{
+  "schema": "challenge-escrow.authority-policy-negative/v1",
+  "cases": [
+    { "id": "zero-member", "mutation": "zero-member", "expectedCode": "ZeroMember" },
+    { "id": "duplicate-member", "mutation": "duplicate-member", "expectedCode": "DuplicateMember" },
+    { "id": "cross-role-overlap", "mutation": "cross-role-overlap", "expectedCode": "CrossRoleOverlap" },
+    { "id": "single-signer-threshold", "mutation": "single-signer-threshold", "expectedCode": "UnsafeThreshold" },
+    { "id": "minority-threshold", "mutation": "minority-threshold", "expectedCode": "UnsafeThreshold" },
+    { "id": "threshold-exceeds-members", "mutation": "threshold-exceeds-members", "expectedCode": "InvalidThreshold" },
+    { "id": "uint256-overflow", "mutation": "uint256-overflow", "expectedCode": "DecimalRange" },
+    { "id": "uint64-time-overflow", "mutation": "uint64-time-overflow", "expectedCode": "DecimalRange" },
+    { "id": "epoch-longer-than-one-year", "mutation": "epoch-too-long", "expectedCode": "RotationWindow" },
+    { "id": "insufficient-review-delay", "mutation": "insufficient-review-delay", "expectedCode": "RotationWindow" },
+    { "id": "role-order", "mutation": "role-order", "expectedCode": "RoleOrder" },
+    { "id": "member-order", "mutation": "member-order", "expectedCode": "MemberOrder" },
+    { "id": "missing-capability-denial", "mutation": "missing-capability-denial", "expectedCode": "CapabilityBoundary" },
+    { "id": "missing-predecessor", "mutation": "missing-predecessor", "expectedCode": "LineageMismatch" },
+    { "id": "zero-predecessor", "mutation": "zero-predecessor", "expectedCode": "LineageMismatch" },
+    { "id": "stale-epoch-context", "mutation": "stale-epoch-context", "expectedCode": "StaleEpoch" },
+    { "id": "wrong-predecessor-context", "mutation": "wrong-predecessor-context", "expectedCode": "LineageMismatch" },
+    { "id": "expired-policy", "mutation": "expired-policy", "expectedCode": "PolicyExpired" },
+    { "id": "policy-hash-mismatch", "mutation": "policy-hash-mismatch", "expectedCode": "PolicyHashMismatch" }
+  ]
+}

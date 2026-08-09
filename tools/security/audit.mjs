@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -36,7 +36,7 @@ function version(name, args, explicitPath = null) {
   return { available: result.status === 0, value: output.split("\n")[0] ?? output };
 }
 
-function run(label, command, args, timeout) {
+function run(label, command, args, timeout, acceptOutput = null) {
   const result = spawnSync(command, args, {
     cwd: root,
     env,
@@ -45,14 +45,16 @@ function run(label, command, args, timeout) {
     maxBuffer: 32 * 1024 * 1024,
   });
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+  const outputAccepted = acceptOutput ? acceptOutput(output) : true;
   const logPath = join(logDir, `${String(results.length + 1).padStart(2, "0")}-${label}.log`);
   writeFileSync(logPath, output);
   return {
     label,
     command: [command, ...args].join(" "),
-    ok: result.status === 0 && !result.error,
+    ok: result.status === 0 && !result.error && outputAccepted,
     exitCode: result.status,
     signal: result.signal,
+    outputGate: acceptOutput ? outputAccepted : null,
     logPath,
     tail: output.trim().split("\n").slice(-4).join("\n"),
   };
@@ -60,30 +62,39 @@ function run(label, command, args, timeout) {
 
 const results = [];
 results.push(run("diff-check", "git", ["diff", "--check"], 30_000));
+results.push(run("supply-chain", "pnpm", ["run", "supply-chain:check"], 60_000));
+results.push(run("authority-surface", "pnpm", ["run", "authority-surface:check"], 60_000));
 results.push(run("protocol-check", "pnpm", ["run", "check"], 180_000));
 results.push(run("size-check", "pnpm", ["run", "size:check"], 180_000));
 results.push(run("model", "pnpm", ["run", "model:test"], 180_000));
 results.push(run("formal", "pnpm", ["run", "formal:check"], 180_000));
+results.push(run("formal-contract", "pnpm", ["run", "formal:contract"], 300_000));
 results.push(run("schemas", "pnpm", ["run", "schemas:check"], 120_000));
 results.push(run("portable", "pnpm", ["run", "portable:check"], 120_000));
 results.push(run("portable-rust", "pnpm", ["run", "portable:rust"], 180_000));
 results.push(run("portable-differential", "pnpm", ["run", "portable:differential"], 120_000));
 results.push(run("client", "pnpm", ["run", "client:check"], 120_000));
+results.push(run("observer-receipt", "pnpm", ["run", "observer:check"], 120_000));
 results.push(run("testnet-preflight", "pnpm", ["run", "testnet:check"], 120_000));
 results.push(run("simulator", "pnpm", ["run", "simulator:test"], 120_000));
 results.push(run("liveness", "pnpm", ["run", "liveness:sweep"], 120_000));
 results.push(run("failure-lab", "pnpm", ["run", "failure:lab"], 120_000));
 results.push(run("authority-v2", "pnpm", ["run", "authority:v2"], 120_000));
+results.push(run("authority-policy", "pnpm", ["run", "authority:check"], 120_000));
+results.push(run("release-attestation", "pnpm", ["run", "release:check"], 180_000));
 results.push(run("attack-baseline", "pnpm", ["run", "security:baseline"], 180_000));
 results.push(run("mutation", "pnpm", ["run", "security:mutation"], 300_000));
 results.push(run("medusa", "pnpm", ["run", "medusa:test"], 180_000));
-results.push(run("gitleaks", "gitleaks", ["detect", "--source", ".", "--no-git", "--redact"], 120_000));
+results.push(run("gitleaks-history", "gitleaks", ["detect", "--source", ".", "--redact"], 120_000));
+results.push(run("gitleaks-worktree", "gitleaks", ["detect", "--source", ".", "--no-git", "--redact"], 120_000));
 results.push(run(
   "semgrep",
   "semgrep",
   [
     "scan",
     "--no-git-ignore",
+    "--config",
+    "tools/security/semgrep-local.yml",
     "--config",
     "p/security-audit",
     "--config",
@@ -99,6 +110,7 @@ results.push(run(
     "contracts/out",
     "--exclude",
     "contracts/broadcast",
+    ".github",
     "contracts/src",
     "contracts/test",
     "tools",
@@ -109,12 +121,7 @@ results.push(run(
   ],
   180_000,
 ));
-results.push(run(
-  "slither-summary",
-  "slither",
-  ["contracts", "--exclude-dependencies", "--print", "human-summary"],
-  180_000,
-));
+results.push(run("slither-gate", "pnpm", ["run", "slither:gate"], 240_000));
 results.push(run("dependency-audit", "pnpm", ["audit", "--audit-level", "high"], 120_000));
 
 const tools = Object.fromEntries([
@@ -131,13 +138,48 @@ const tools = Object.fromEntries([
   ["slither", version("slither", ["--version"])],
 ]);
 
+const expectedAnalyzerVersions = new Map([
+  ["z3", "Z3 version 4.16.0"],
+  ["medusa", "medusa version 1.5.1"],
+  ["gitleaks", "8.30.1"],
+  ["semgrep", "1.172.0"],
+  ["slither", "0.11.6"],
+]);
+
+function normalizedAnalyzerVersion(name, value) {
+  if (name === "z3") return value.replace(/ - (?:32|64) bit$/, "");
+  return value;
+}
+
+const analyzerVersionDrift = [...expectedAnalyzerVersions]
+  .filter(([name, expected]) => (
+    !tools[name]?.available
+    || normalizedAnalyzerVersion(name, tools[name].value) !== expected
+  ))
+  .map(([name, expected]) => ({
+    name,
+    expected,
+    actual: tools[name]?.available ? tools[name].value : null,
+  }));
+
 const failed = results.filter((result) => !result.ok);
+const retainLogs = failed.length > 0 || analyzerVersionDrift.length > 0;
+const reportedResults = results.map((result) => ({
+  ...result,
+  logPath: retainLogs ? result.logPath : null,
+}));
 console.log(JSON.stringify({
-  status: failed.length === 0 ? "ok" : "failed",
+  status: failed.length === 0 && analyzerVersionDrift.length === 0 ? "ok" : "failed",
   root,
-  logDir,
+  logs: { retained: retainLogs, directory: retainLogs ? logDir : null },
   tools,
-  results,
+  analyzerVersionGate: {
+    status: analyzerVersionDrift.length === 0 ? "ok" : "failed",
+    expected: Object.fromEntries(expectedAnalyzerVersions),
+    drift: analyzerVersionDrift,
+  },
+  results: reportedResults,
 }, null, 2));
 
-if (failed.length > 0) process.exitCode = 1;
+if (!retainLogs) rmSync(logDir, { recursive: true, force: true });
+if (failed.length > 0 || analyzerVersionDrift.length > 0) process.exitCode = 1;
