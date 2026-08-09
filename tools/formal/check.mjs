@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -15,6 +16,15 @@ function findSolc() {
   if (process.env.SOLC_BIN && existsSync(process.env.SOLC_BIN)) return process.env.SOLC_BIN;
   const fromPath = executableFromPath("solc");
   if (fromPath) return fromPath;
+  const svmRoots = new Set([
+    join(homedir(), ".svm"),
+    join(process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"), "svm"),
+    join(homedir(), "Library", "Application Support", "svm"),
+  ]);
+  for (const root of svmRoots) {
+    const candidate = join(root, "0.8.36", "solc-0.8.36");
+    if (existsSync(candidate)) return candidate;
+  }
   const roots = ["/opt/homebrew/Cellar/slither-analyzer", "/usr/local/Cellar/slither-analyzer"];
   for (const root of roots) {
     if (!existsSync(root)) continue;

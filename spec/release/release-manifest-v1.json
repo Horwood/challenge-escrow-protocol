@@ -1,6 +1,6 @@
 {
   "schema": "challenge-escrow.release-manifest/v1",
-  "manifestHash": "0x910a00aa9a5984f7c03c9f0a9efbaaa38d7f9f921790709fec81ad28df022c56",
+  "manifestHash": "0xc2c933aa0e5127aebbba1858a60cc089ae722b1f206a8343f8639baec29a09eb",
   "release": {
     "contract": "ChallengeEscrow",
     "protocolVersion": "challenge-escrow-protocol/v1",
@@ -710,8 +710,8 @@
     },
     {
       "path": "tools/formal/check.mjs",
-      "bytes": "3337",
-      "sha256": "sha256:07d048c9be9dbe150d0b38dd0dea111c2f81d0c8a9a694031a2813e92ead1734"
+      "bytes": "3725",
+      "sha256": "sha256:e7d81c0022d22af989e2982b15746af8ff239524efb8315120ccca4353ccde4c"
     },
     {
       "path": "tools/formal/foundry.toml",
@@ -941,6 +941,6 @@
   ],
   "boundaries": {
     "productionSourcesSha256": "sha256:a8c46db76ce97de6911a26cd5964cf3bfc5077f504c8d8d5f92b2ff27642e8b6",
-    "publicArtifactsSha256": "sha256:d5455efcf29f16bf746a7e41daffd468a9bc869b95a25dd46a1d83ae388007d1"
+    "publicArtifactsSha256": "sha256:cd9b0ec12b87595e1063d69b5a0759e20d6b0921aa6d3539728c680767224c38"
   }
 }
