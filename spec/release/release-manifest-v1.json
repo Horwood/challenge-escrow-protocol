@@ -1,6 +1,6 @@
 {
   "schema": "challenge-escrow.release-manifest/v1",
-  "manifestHash": "0xbd3d33f86a0ddd1bdda1af3104bb48eaabe2f82a9d3ff53ed6ca6fb0eedb8b80",
+  "manifestHash": "0xe2fbeff823c7ecc57fcd13e1a09e515f7da658c7e0ce7cbce1ad5e52fe107935",
   "release": {
     "contract": "ChallengeEscrow",
     "protocolVersion": "challenge-escrow-protocol/v1",
@@ -501,7 +501,7 @@
     {
       "path": "package.json",
       "bytes": "4987",
-      "sha256": "sha256:d3667d18227295c74f3d45913f1a00384862afcda03c45be81f21d956208adbf"
+      "sha256": "sha256:c52b36f0e767df54bff88abb4e857dfaef254c9cb616463597fb8cf15c9f82cd"
     },
     {
       "path": "pnpm-lock.yaml",
@@ -931,6 +931,6 @@
   ],
   "boundaries": {
     "productionSourcesSha256": "sha256:a8c46db76ce97de6911a26cd5964cf3bfc5077f504c8d8d5f92b2ff27642e8b6",
-    "publicArtifactsSha256": "sha256:44abd9ccbb9664c395720422a451abcf13cb90b643691e759480ddcc724dbf08"
+    "publicArtifactsSha256": "sha256:5cc0db1655ae1d3f25e91deb5f68850312a22b8216c2a3077e69ca72df7287ed"
   }
 }

@@ -45,7 +45,7 @@
     "check:line1": "pnpm run check && pnpm run model:test && pnpm run formal:check",
     "check:depth1": "pnpm run check && pnpm run formal:check && pnpm run formal:contract && pnpm run audit:dependencies",
     "check:depth2": "pnpm run check && pnpm run schemas:check && pnpm run portable:check && pnpm run portable:rust && pnpm run portable:differential && pnpm run audit:dependencies",
-    "check:depth3": "pnpm run supply-chain:check && pnpm run authority-surface:check && pnpm run check:depth2 && pnpm run size:check && pnpm run model:test && pnpm run formal:check && pnpm run formal:contract && pnpm run client:check && pnpm run observer:check && pnpm run authority:check && pnpm run testnet:check && pnpm run simulator:test && pnpm run liveness:sweep && pnpm run failure:lab && pnpm run authority:v2 && pnpm run security:baseline && pnpm run security:mutation && pnpm run release:check",
+    "check:depth3": "pnpm run supply-chain:check && pnpm run check:depth2 && pnpm run authority-surface:check && pnpm run size:check && pnpm run model:test && pnpm run formal:check && pnpm run formal:contract && pnpm run client:check && pnpm run observer:check && pnpm run authority:check && pnpm run testnet:check && pnpm run simulator:test && pnpm run liveness:sweep && pnpm run failure:lab && pnpm run authority:v2 && pnpm run security:baseline && pnpm run security:mutation && pnpm run release:check",
     "check:line2": "pnpm run audit:baseline",
     "check:line3": "pnpm run check && pnpm run schemas:check && pnpm run portable:check",
     "check:line4": "pnpm run check && pnpm run client:check && pnpm run simulator:test",
