@@ -11,11 +11,11 @@ function assert(condition, message) {
 const workflow = read(".github/workflows/verify.yml");
 const expectedActions = new Map([
   ["actions/checkout", "3d3c42e5aac5ba805825da76410c181273ba90b1"],
-  ["pnpm/action-setup", "0ebf47130e4866e96fce0953f49152a61190b271"],
+  ["pnpm/action-setup", "0977fd99725f1db4007ccb2928dbb4e90d06cc86"],
   ["actions/setup-node", "820762786026740c76f36085b0efc47a31fe5020"],
-  ["denoland/setup-deno", "667a34cdef165d8d2b2e98dde39547c9daac7282"],
+  ["denoland/setup-deno", "22d081ff2d3a40755e97629de92e3bcbfa7cf2ed"],
   ["foundry-rs/foundry-toolchain", "908c540300062bd5a7e473851cdb4282204cee09"],
-  ["astral-sh/setup-uv", "08807647e7069bb48b6ef5acd8ec9567f424441b"],
+  ["astral-sh/setup-uv", "20cfd1bf945f4377ade1205e4dbc17946fc9a30d"],
 ]);
 const actionLines = [...workflow.matchAll(/^\s*uses:\s*([^@\s]+)@([^\s#]+)/gm)]
   .map((match) => ({ action: match[1], revision: match[2] }));
