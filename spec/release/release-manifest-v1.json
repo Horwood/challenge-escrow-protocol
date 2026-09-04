@@ -1,6 +1,6 @@
 {
   "schema": "challenge-escrow.release-manifest/v1",
-  "manifestHash": "0x41e261e850d28707d83cb407b8bee63edd0385a2caf056ee5c190904c61df570",
+  "manifestHash": "0xf5e9dfce6cdd3e8dfd9900c345cda127790e7f1bdd9c859c5e5e439352d1fa02",
   "release": {
     "contract": "ChallengeEscrow",
     "protocolVersion": "challenge-escrow-protocol/v1",
@@ -325,8 +325,8 @@
     },
     {
       "path": ".github/workflows/verify.yml",
-      "bytes": "2021",
-      "sha256": "sha256:bc9a2afb5958a6e889a5b13fec055bd3a4245788d30f36e50ec67bb6dc27d2b6"
+      "bytes": "2023",
+      "sha256": "sha256:30143bf99c528952e8ae7f3daa828531c528ef96ccc504c466b4b315cf341378"
     },
     {
       "path": ".gitignore",
@@ -891,7 +891,7 @@
     {
       "path": "tools/security/supply-chain.mjs",
       "bytes": "10377",
-      "sha256": "sha256:79f13e3b9920a30417f5d00dd59b2a2f9f6981f734e8a7ba531398c342477ef4"
+      "sha256": "sha256:f10770602f3603a1ff668490f6ab2e015cd5a171bbee3cc7706c11e1fcad9f2c"
     },
     {
       "path": "tools/simulator/README.md",
@@ -941,6 +941,6 @@
   ],
   "boundaries": {
     "productionSourcesSha256": "sha256:a8c46db76ce97de6911a26cd5964cf3bfc5077f504c8d8d5f92b2ff27642e8b6",
-    "publicArtifactsSha256": "sha256:7fe7bb6fe432580c31bc3e50468385f50e454b2ec6e5b4e48f18bdacef26de7e"
+    "publicArtifactsSha256": "sha256:28ac855d40c3a7abbac4b9314397ffecf2e1e2950739b1c63bab033d1f935e1c"
   }
 }
